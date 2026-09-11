@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Lock files
+package-lock.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build outputs
+dist/
+build/
+.vercel/

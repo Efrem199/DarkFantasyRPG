@@ -1,0 +1,22 @@
+{
+  "name": "cursebound",
+  "version": "1.0.0",
+  "description": "CURSEBOUND — Dark Idle RPG",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Efrem199/DarkFantasyRPG.git"
+  },
+  "keywords": ["rpg", "game", "idle"],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Efrem199/DarkFantasyRPG/issues"
+  },
+  "homepage": "https://github.com/Efrem199/DarkFantasyRPG#readme",
+  "dependencies": {
+    "@vercel/analytics": "^1.4.1"
+  }
+}
