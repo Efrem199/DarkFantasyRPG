@@ -1,0 +1,40 @@
+/* ============================================================
+   Все ключевые кадры игры
+   ============================================================ */
+@keyframes pop{40%{transform:scale(1.12)}}
+@keyframes tabGlow{50%{box-shadow:0 0 16px -4px var(--gold)}}
+@keyframes logIn{from{opacity:0; transform:translateX(-6px)}}
+@keyframes availPulse{50%{opacity:.25; transform:scale(1.06)}}
+
+/* Арена — фон и враг */
+@keyframes drift1{to{transform:translateX(14%) translateY(6%)}}
+@keyframes drift2{to{transform:translateX(-12%) translateY(-5%)}}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@keyframes hitShake{25%{transform:translate(-7px,3px) rotate(-2.5deg) scale(.96)}60%{transform:translate(5px,-2px) rotate(1.6deg) scale(.985)}}
+@keyframes die{40%{transform:scale(1.12); filter:grayscale(.6) brightness(1.5)}
+ 100%{transform:scale(.6) translateY(24px); opacity:0; filter:grayscale(1) brightness(2) blur(6px)}}
+@keyframes veilPulse{50%{opacity:.55}}
+@keyframes bossBlink{50%{opacity:.45}}
+@keyframes stripes{to{background-position:34px 0}}
+@keyframes weakPulse{50%{transform:scale(1.18)}}
+@keyframes shake{20%{transform:translate(-7px,3px)}40%{transform:translate(6px,-4px)}60%{transform:translate(-5px,-2px)}80%{transform:translate(4px,3px)}}
+
+/* Свита */
+@keyframes petFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-10px) rotate(3deg)}}
+@keyframes petAct{40%{transform:scale(1.3) translateX(14px)}}
+
+/* Всплывающие элементы */
+@keyframes dmgUp{to{transform:translate(-50%,-84px) scale(1.12); opacity:0}}
+@keyframes soulFly{to{transform:translate(var(--dx),var(--dy)) scale(.2); opacity:0}}
+@keyframes banner{0%{opacity:0; transform:scale(.8)}18%{opacity:1; transform:scale(1)}80%{opacity:1}100%{opacity:0; transform:scale(1.06)}}
+@keyframes hintIn{from{opacity:0; transform:translate(-50%,14px)}}
+@keyframes zb{0%{opacity:0;transform:translate(-50%,-40%)}12%{opacity:1;transform:translate(-50%,-50%)}
+ 78%{opacity:1}100%{opacity:0;transform:translate(-50%,-58%)}}
+@keyframes toastIn{from{opacity:0; transform:translateY(-18px) scale(.92)}}
+@keyframes toastOut{to{opacity:0; transform:translateY(-14px) scale(.94)}}
+
+/* Экран престижа */
+@keyframes prIn{from{opacity:0}}
+@keyframes prT{from{opacity:0; transform:scale(.8); letter-spacing:20px}}
+@keyframes prL{from{opacity:0}}

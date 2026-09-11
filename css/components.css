@@ -1,0 +1,196 @@
+/* ============================================================
+   Переиспользуемые компоненты: карточки лавки, кнопки,
+   стоимости, тосты, модальные окна, экран престижа
+   ============================================================ */
+
+/* ---------- Карточки покупки ---------- */
+.shop-list{display:grid; gap:8px}
+.shop-item{display:flex; gap:9px; align-items:center; padding:9px; border-radius:12px;
+  border:1px solid var(--line); background:rgba(255,255,255,.02); transition:.2s}
+.shop-item:hover{border-color:var(--line2); background:rgba(255,255,255,.035)}
+.shop-ic{flex:none; width:40px; height:40px; border-radius:11px; display:grid; place-items:center;
+  border:1px solid var(--line2); color:#b7aee0;
+  background:radial-gradient(circle at 50% 30%, rgba(139,108,240,.16), transparent 75%)}
+.shop-ic svg{width:20px;height:20px}
+.shop-info{flex:1; min-width:0}
+.shop-info .nm{font-weight:800; font-size:12.5px; display:flex; align-items:baseline; gap:6px; flex-wrap:wrap}
+.shop-info .nm .lv{font-size:9.5px; color:var(--vio); font-weight:800}
+.shop-info .ds{font-size:10px; color:var(--mut); margin-top:2px; line-height:1.45}
+.shop-info .ef{font-size:10px; color:#79d4ab; margin-top:1px; font-weight:700}
+.shop-info .lr{font-size:10px; color:#7a7295; font-style:italic; margin-top:3px; line-height:1.45}
+.buy{flex:none; min-width:74px; display:flex; flex-direction:column; align-items:center; gap:1px;
+  padding:7px 8px; border-radius:10px; cursor:pointer; border:1px solid rgba(232,185,78,.45);
+  background:linear-gradient(180deg, rgba(232,185,78,.16), rgba(166,124,46,.1)); color:var(--gold);
+  font-weight:800; font-size:12px; transition:.18s; font-variant-numeric:tabular-nums}
+.buy svg{width:12px;height:12px;vertical-align:-2px;margin-right:2px}
+.buy small{font-size:8px; letter-spacing:1px; color:var(--mut); text-transform:uppercase; font-weight:700}
+.buy:hover:not(:disabled){transform:translateY(-1px); box-shadow:0 6px 18px -6px rgba(232,185,78,.5)}
+.buy:active:not(:disabled){transform:scale(.96)}
+.buy:disabled{cursor:not-allowed; opacity:.42; filter:grayscale(.6)}
+.buy.cant{border-color:rgba(229,72,77,.4); color:#e08185}
+.buy.sh{border-color:rgba(106,217,255,.45); color:var(--shard); background:linear-gradient(180deg, rgba(106,217,255,.14), rgba(40,90,120,.1))}
+.buy.bl{border-color:rgba(255,92,110,.45); color:var(--rblood); background:linear-gradient(180deg, rgba(255,92,110,.14), rgba(120,30,40,.1))}
+.buy.as{border-color:rgba(201,183,154,.4); color:var(--rash); background:linear-gradient(180deg, rgba(201,183,154,.12), rgba(80,70,55,.1))}
+.buy.wh{border-color:rgba(157,140,255,.45); color:var(--rwhis); background:linear-gradient(180deg, rgba(157,140,255,.14), rgba(60,50,120,.1))}
+.buy.tr{border-color:rgba(255,224,102,.5); color:var(--rtruth); background:linear-gradient(180deg, rgba(255,224,102,.14), rgba(120,100,30,.1))}
+.shop-note{margin-top:10px; font-size:10px; color:#625a7d; text-align:center; line-height:1.5}
+
+/* ---------- Лавка: массовая и автопокупка ---------- */
+.shop-head{margin-bottom:10px}
+.bulk-row{display:flex; align-items:center; gap:5px; flex-wrap:wrap}
+.bulk-label{font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--mut); font-weight:800; margin-right:2px}
+.bulk-btn{padding:7px 11px; border-radius:9px; cursor:pointer; font-size:11px; font-weight:800;
+  border:1px solid var(--line2); background:rgba(255,255,255,.03); color:var(--mut); transition:.15s}
+.bulk-btn:hover{color:var(--txt)}
+.bulk-btn.on{color:var(--gold); border-color:rgba(232,185,78,.55); background:rgba(232,185,78,.12)}
+.bulk-btn.auto{margin-left:auto; display:flex; align-items:center; gap:5px}
+.bulk-btn.auto svg{width:12px;height:12px}
+.bulk-btn.auto.on{color:var(--grn); border-color:rgba(94,232,160,.5); background:rgba(94,232,160,.1);
+  box-shadow:0 0 16px -6px var(--grn)}
+.auto-note{margin-top:7px; font-size:10px; color:#7c7499; line-height:1.5}
+.auto-note.dim{color:#5d5680}
+.auto-note b{color:var(--grn)}
+/* Крупная карточка улучшения */
+.shop-item{flex-direction:column; align-items:stretch; gap:0; padding:0; overflow:hidden}
+.shop-item .si-top{display:flex; gap:9px; align-items:center; padding:10px 10px 8px}
+.shop-item .si-bot{display:flex; align-items:center; gap:8px; padding:8px 10px;
+  border-top:1px solid rgba(255,255,255,.05); background:rgba(0,0,0,.18)}
+.shop-item.t-blood{border-color:rgba(229,72,77,.30)}
+.shop-item.t-vio{border-color:rgba(139,108,240,.30)}
+.shop-item.t-gold{border-color:rgba(232,185,78,.30)}
+.shop-item.t-shard{border-color:rgba(106,217,255,.30)}
+.shop-item.t-blood .shop-ic{color:#ff9a9d; border-color:rgba(229,72,77,.4)}
+.shop-item.t-vio .shop-ic{color:#c5b4ff; border-color:rgba(139,108,240,.4)}
+.shop-item.t-gold .shop-ic{color:var(--gold); border-color:rgba(232,185,78,.4)}
+.shop-item.t-shard .shop-ic{color:var(--shard); border-color:rgba(106,217,255,.4)}
+.si-prio{display:flex; flex-direction:column; gap:3px}
+.prio-btn{width:24px; height:20px; border-radius:6px; cursor:pointer; font-size:9px; line-height:1;
+  border:1px solid var(--line2); background:rgba(255,255,255,.03); color:var(--mut)}
+.prio-btn:hover:not(:disabled){color:var(--txt); border-color:var(--vio)}
+.prio-btn:disabled{opacity:.25; cursor:default}
+.auto-chk{display:flex; align-items:center; gap:6px; cursor:pointer; font-size:10px; font-weight:800;
+  letter-spacing:1px; text-transform:uppercase; color:var(--mut); user-select:none}
+.auto-chk .box{width:16px; height:16px; border-radius:5px; display:grid; place-items:center;
+  border:1px solid var(--line2); background:rgba(0,0,0,.3)}
+.auto-chk .box svg{width:11px;height:11px}
+.auto-chk.on{color:var(--grn)}
+.auto-chk.on .box{border-color:var(--grn); color:var(--grn); background:rgba(94,232,160,.12)}
+.buy.wide{margin-left:auto; min-width:132px; flex-direction:row; gap:5px; align-items:baseline; padding:9px 12px}
+.buy.wide small{color:inherit; opacity:.7}
+
+/* ---------- Справочник ресурсов ---------- */
+.res-list{display:grid; gap:8px; text-align:left; margin-bottom:14px}
+.res-row{display:flex; gap:10px; padding:10px; border-radius:12px;
+  border:1px solid var(--line2); background:rgba(255,255,255,.025)}
+.res-row .rr-ic{flex:none; width:34px; height:34px; border-radius:10px; display:grid; place-items:center;
+  border:1px solid currentColor; background:rgba(0,0,0,.3)}
+.res-row .rr-ic svg{width:17px;height:17px}
+.res-row.r-blood .rr-ic{color:var(--rblood)} .res-row.r-ash .rr-ic{color:var(--rash)}
+.res-row.r-whisper .rr-ic{color:var(--rwhis)} .res-row.r-truth .rr-ic{color:var(--rtruth)}
+.rr-main{flex:1; min-width:0}
+.rr-nm{font-weight:800; font-size:12.5px; display:flex; align-items:baseline; gap:8px}
+.rr-have{margin-left:auto; font-variant-numeric:tabular-nums; color:var(--txt)}
+.rr-line{font-size:10.5px; color:var(--mut); margin-top:3px; line-height:1.5}
+.rr-line b{color:#9a92b5; font-weight:800}
+.cost-row{display:flex; gap:6px; flex-wrap:wrap; margin-top:4px}
+.cost{display:flex; align-items:center; gap:3px; font-size:10px; font-weight:800; padding:2px 6px;
+  border-radius:6px; border:1px solid var(--line2); background:rgba(0,0,0,.25)}
+.cost svg{width:11px;height:11px}
+.cost.ok{color:#9df0c4; border-color:rgba(94,232,160,.3)}
+.cost.no{color:#e08185; border-color:rgba(229,72,77,.35)}
+
+/* ---------- Мелкие кнопки и заглушки ---------- */
+.tiny-btn{padding:6px 10px; border-radius:9px; cursor:pointer; font-size:10px; font-weight:800;
+  border:1px solid var(--line2); background:rgba(255,255,255,.04); color:var(--mut); transition:.18s}
+.tiny-btn:hover{color:var(--txt); border-color:var(--blood)}
+.mini{padding:5px 8px; border-radius:8px; font-size:10px; font-weight:800; cursor:pointer;
+  border:1px solid var(--line2); background:rgba(255,255,255,.04); transition:.15s; white-space:nowrap}
+.mini:hover{border-color:var(--vio)}
+.mini.sell{border-color:rgba(232,185,78,.4); color:var(--gold)}
+.mini.off{border-color:rgba(229,72,77,.4); color:#e08185}
+.mini.bl{border-color:rgba(255,92,110,.4); color:var(--rblood)}
+.mini.as{border-color:rgba(201,183,154,.35); color:var(--rash)}
+.empty{text-align:center; color:#5b5378; font-size:11px; padding:20px 10px; line-height:1.6}
+
+/* ---------- Тосты ---------- */
+#toasts{position:fixed; top:70px; left:50%; transform:translateX(-50%); z-index:80; display:flex;
+  flex-direction:column; gap:8px; align-items:center; pointer-events:none; width:min(380px,90vw)}
+.toast{display:flex; align-items:center; gap:10px; width:100%; padding:10px 14px; border-radius:14px;
+  border:1px solid rgba(232,185,78,.5); background:linear-gradient(180deg, rgba(30,22,12,.95), rgba(16,11,7,.95));
+  box-shadow:0 14px 40px -10px rgba(0,0,0,.9); animation:toastIn .45s cubic-bezier(.2,.9,.3,1.3)}
+.toast.out{animation:toastOut .4s ease forwards}
+.toast.drop{border-color:rgba(106,217,255,.5); background:linear-gradient(180deg, rgba(10,26,34,.95), rgba(7,14,20,.95))}
+.toast.drop .t-ic{color:var(--shard); border-color:rgba(106,217,255,.5); background:rgba(106,217,255,.1)}
+.toast.drop b{color:var(--shard)}
+.toast.pet{border-color:rgba(139,108,240,.5); background:linear-gradient(180deg, rgba(22,16,38,.96), rgba(11,8,20,.96))}
+.toast.pet .t-ic{color:var(--vio); border-color:rgba(139,108,240,.5); background:rgba(139,108,240,.1)}
+.toast.pet b{color:#c5b4ff}
+.toast.truth{border-color:rgba(255,224,102,.55); background:linear-gradient(180deg, rgba(34,28,10,.96), rgba(18,14,6,.96))}
+.toast.truth .t-ic{color:var(--rtruth); border-color:rgba(255,224,102,.5); background:rgba(255,224,102,.1)}
+.toast.truth b{color:var(--rtruth)}
+.toast .t-ic{flex:none; width:36px; height:36px; border-radius:11px; display:grid; place-items:center;
+  color:var(--gold); border:1px solid rgba(232,185,78,.5); background:rgba(232,185,78,.1)}
+.toast .t-ic svg{width:18px;height:18px}
+.toast b{display:block; font-size:12px; color:var(--gold)}
+.toast span{font-size:10.5px; color:var(--mut)}
+.toast small{display:block; font-size:8px; letter-spacing:2.5px; text-transform:uppercase; color:#7c6a3a}
+
+/* ---------- Модальные окна ---------- */
+#modal{position:fixed; inset:0; z-index:90; display:none; place-items:center; padding:16px;
+  background:rgba(4,3,8,.75); backdrop-filter:blur(6px); overflow-y:auto}
+#modal.open{display:grid}
+.modal-card{width:min(560px,94vw); padding:24px 22px; border-radius:18px; text-align:center;
+  border:1px solid var(--line2); background:linear-gradient(180deg,#171226,#0b0913);
+  box-shadow:0 30px 80px -20px #000; animation:pop .35s ease; margin:auto}
+.modal-card .m-ic{width:52px; height:52px; margin:0 auto 12px; border-radius:16px; display:grid; place-items:center;
+  color:var(--vio); border:1px solid var(--line2); background:rgba(139,108,240,.08)}
+.modal-card .m-ic svg{width:24px;height:24px}
+.modal-card h2{margin:0 0 8px; font-family:'Cinzel',serif; font-size:19px; letter-spacing:1px}
+.modal-card p{margin:0 0 15px; font-size:12.5px; color:var(--mut); line-height:1.65}
+.modal-card p b{color:var(--gold)} .modal-card p i{color:#a79ec7}
+.m-list{text-align:left; font-size:11.5px; color:var(--mut); line-height:1.9; margin:0 auto 15px; max-width:400px}
+.m-list .neg{color:#e08185} .m-list .pos{color:#9df0c4}
+.m-btns{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
+.btn{padding:11px 18px; border-radius:12px; font-weight:800; font-size:12.5px; cursor:pointer;
+  border:1px solid var(--line2); background:rgba(255,255,255,.04); transition:.18s}
+.btn:hover{border-color:var(--vio)}
+.btn.danger{border-color:rgba(229,72,77,.55); background:rgba(229,72,77,.12); color:#ff9a9d}
+.btn.danger:hover{background:rgba(229,72,77,.22); box-shadow:0 0 20px -6px var(--blood)}
+.btn.gold{border-color:rgba(232,185,78,.5); color:var(--gold); background:rgba(232,185,78,.1)}
+.btn.sh{border-color:rgba(106,217,255,.5); color:var(--shard); background:rgba(106,217,255,.1)}
+.btn.tr{border-color:rgba(255,224,102,.5); color:var(--rtruth); background:rgba(255,224,102,.1)}
+.class-grid{display:grid; gap:10px; margin-bottom:14px}
+.class-card{padding:14px; border-radius:14px; cursor:pointer; text-align:left; transition:.2s;
+  border:1px solid var(--line2); background:rgba(255,255,255,.025)}
+.class-card:hover{transform:translateY(-2px); background:rgba(255,255,255,.05)}
+.class-card .ch{display:flex; align-items:center; gap:10px}
+.class-card .ci{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;
+  border:1px solid currentColor; background:rgba(0,0,0,.3)}
+.class-card .ci svg{width:20px;height:20px}
+.class-card .cn{font-family:'Cinzel',serif; font-size:15px; font-weight:700}
+.class-card .cd{font-size:11.5px; color:var(--mut); margin-top:7px; line-height:1.5}
+.class-card .cs{font-size:11px; color:#79d4ab; margin-top:6px; font-weight:700}
+.class-card .cx{font-size:11px; color:#ffb14e; margin-top:4px; font-weight:700}
+.class-card .cl{font-size:11px; color:#7a7295; font-style:italic; margin-top:6px; line-height:1.5}
+textarea.save-box{width:100%; height:100px; resize:vertical; padding:10px; border-radius:11px; font-size:10px;
+  border:1px solid var(--line2); background:#0b0913; color:var(--mut); font-family:ui-monospace,monospace;
+  margin-bottom:12px; word-break:break-all}
+
+/* ---------- Экран Разрыва Оков ---------- */
+#prestScreen{position:fixed; inset:0; z-index:95; display:none; place-items:center; background:#05040a;
+  text-align:center; padding:20px; overflow-y:auto}
+#prestScreen.on{display:grid; animation:prIn .6s ease}
+#prestScreen .pt{font-family:'Cinzel',serif; font-weight:900; font-size:clamp(22px,6.5vmin,54px); letter-spacing:8px;
+  background:linear-gradient(180deg,#fff,var(--blood)); -webkit-background-clip:text; background-clip:text;
+  color:transparent; filter:drop-shadow(0 0 40px rgba(229,72,77,.7)); animation:prT 1s ease}
+#prestScreen .pl{margin-top:16px; font-size:12.5px; color:var(--mut); line-height:2; max-width:520px; animation:prL 1.4s ease}
+#prestScreen .ps{margin-top:20px; font-size:19px; font-weight:900; color:var(--shard);
+  display:flex; align-items:center; justify-content:center; gap:10px; font-family:'Cinzel',serif}
+#prestScreen .ps svg{width:22px;height:22px}
+.sum-grid{max-width:440px; margin:18px auto 0; display:grid; gap:7px; text-align:left}
+.sum-row{display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:11px;
+  border:1px solid var(--line2); background:rgba(255,255,255,.03); font-size:12px}
+.sum-row svg{width:15px;height:15px;color:var(--shard);flex:none}
+.sum-row .sk{color:var(--mut); flex:1}
+.sum-row .sv{font-weight:800; color:var(--txt); font-variant-numeric:tabular-nums}
+.sum-row .sv em{color:var(--grn); font-style:normal}

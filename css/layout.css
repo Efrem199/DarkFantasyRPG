@@ -1,0 +1,107 @@
+/* ============================================================
+   Каркас: шапка, полоса ресурсов, сетка, панели, вкладки, адаптив
+   ============================================================ */
+#app{position:relative; z-index:3; height:100dvh; display:flex; flex-direction:column}
+header{flex:none; display:flex; align-items:center; gap:10px; padding:8px 12px;
+  border-bottom:1px solid var(--line); backdrop-filter:blur(10px);
+  background:linear-gradient(180deg, rgba(13,10,22,.9), rgba(9,7,15,.75))}
+.brand{display:flex; flex-direction:column; line-height:1; user-select:none}
+.brand b{font-family:'Cinzel',serif; font-weight:900; font-size:18px; letter-spacing:3px;
+  background:linear-gradient(180deg,#f3e3d0 10%, var(--blood) 60%, var(--blood2));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter:drop-shadow(0 0 14px rgba(229,72,77,.35))}
+.brand span{font-size:9px; letter-spacing:3px; color:var(--mut); text-transform:uppercase; margin-top:3px}
+.hdr-right{margin-left:auto; display:flex; align-items:center; gap:7px}
+.pill{display:flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px;
+  border:1px solid var(--line2); background:rgba(20,15,34,.7); font-weight:800; font-size:13.5px;
+  font-variant-numeric:tabular-nums}
+.pill svg{width:15px;height:15px;flex:none}
+.pill.gold{color:var(--gold); border-color:rgba(232,185,78,.35)}
+.pill.shard{color:var(--shard); border-color:rgba(106,217,255,.35)}
+.pill.pop{animation:pop .35s ease}
+.icon-btn{display:grid; place-items:center; width:34px; height:34px; border-radius:10px; cursor:pointer;
+  border:1px solid var(--line2); background:rgba(20,15,34,.7); color:var(--mut); transition:.2s}
+.icon-btn:hover{color:var(--txt); border-color:var(--blood); box-shadow:0 0 16px -4px var(--blood)}
+.icon-btn svg{width:16px;height:16px}
+#saveDot{width:8px;height:8px;border-radius:50%;background:var(--grn);opacity:.22;
+  transition:opacity .3s; box-shadow:0 0 8px var(--grn)}
+#saveDot.on{opacity:1}
+
+/* Полоса ресурсов */
+#resBar{flex:none; display:flex; gap:6px; padding:6px 12px; overflow-x:auto;
+  border-bottom:1px solid var(--line); background:rgba(9,7,15,.6)}
+#resBar::-webkit-scrollbar{height:0}
+#resBar:empty{display:none}
+.res-chip{flex:none; display:flex; align-items:center; gap:5px; padding:4px 9px; border-radius:9px;
+  font-size:11.5px; font-weight:800; font-variant-numeric:tabular-nums;
+  border:1px solid var(--line2); background:rgba(20,15,34,.55); cursor:help}
+.res-chip svg{width:13px;height:13px}
+.res-chip.r-blood{color:var(--rblood); border-color:rgba(255,92,110,.32)}
+.res-chip.r-ash{color:var(--rash); border-color:rgba(201,183,154,.3)}
+.res-chip.r-whisper{color:var(--rwhis); border-color:rgba(157,140,255,.32)}
+.res-chip.r-truth{color:var(--rtruth); border-color:rgba(255,224,102,.34); box-shadow:0 0 14px -6px var(--rtruth)}
+.res-chip[data-reshelp]{cursor:pointer}
+.res-chip[data-reshelp]:hover{border-color:var(--txt); color:var(--txt)}
+.res-chip.help{color:#7c7499; border-style:dashed; font-weight:700}
+
+/* Сетка и панели */
+main.layout{flex:1; min-height:0; display:grid; grid-template-columns:290px minmax(0,1fr) 352px; gap:10px; padding:10px}
+.panel{min-height:0; display:flex; flex-direction:column; overflow:hidden;
+  background:linear-gradient(180deg, var(--panel), var(--panel2));
+  border:1px solid var(--line); border-radius:var(--rad);
+  box-shadow:0 20px 50px -20px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.04)}
+.tabs{flex:none; display:flex; gap:4px; padding:7px 8px; border-bottom:1px solid var(--line);
+  overflow-x:auto; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch;
+  scroll-snap-type:x proximity; scrollbar-width:none;
+  -webkit-mask-image:linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+  mask-image:linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%)}
+.tabs::-webkit-scrollbar{height:0}
+.tabs button{flex:0 0 auto; scroll-snap-align:center; white-space:nowrap; padding:9px 12px; border-radius:10px;
+  cursor:pointer; border:1px solid transparent; background:rgba(255,255,255,.02); color:var(--mut);
+  font-size:10.5px; font-weight:800; letter-spacing:.6px; text-transform:uppercase; transition:.18s}
+.tabs button:hover{color:var(--txt)}
+.tabs button.on{color:var(--txt); border-color:var(--line2); background:rgba(139,108,240,.12)}
+.tabs button.ready{color:var(--gold); border-color:rgba(232,185,78,.5); animation:tabGlow 2s ease infinite}
+.tabs button .badge{display:inline-grid; place-items:center; min-width:15px; height:15px; padding:0 4px;
+  border-radius:8px; background:var(--blood); color:#fff; font-size:9px; line-height:1; margin-left:3px}
+.view{display:none; flex:1; min-height:0; overflow-y:auto; padding:12px 12px 20px}
+.view.on{display:block}
+
+/* Мобильная навигация */
+#tabbar{display:none; position:fixed; left:0; right:0; bottom:0; z-index:50;
+  padding:5px 4px calc(5px + env(safe-area-inset-bottom)); gap:3px; overflow-x:auto;
+  background:rgba(9,7,15,.94); border-top:1px solid var(--line); backdrop-filter:blur(12px)}
+#tabbar::-webkit-scrollbar{height:0}
+#tabbar button{flex:0 0 auto; min-width:56px; display:flex; flex-direction:column; align-items:center; gap:2px;
+  padding:6px 3px; border-radius:10px; border:1px solid transparent; background:none; cursor:pointer;
+  color:var(--mut); font-size:8px; letter-spacing:.2px; font-weight:700; text-transform:uppercase}
+#tabbar button svg{width:17px;height:17px}
+#tabbar button.on{color:var(--txt); border-color:var(--line2); background:rgba(139,108,240,.12)}
+#tabbar button.ready{color:var(--gold)}
+
+@media (max-width:1120px){
+  main.layout{display:flex; flex-direction:column; padding-bottom:70px}
+  #arena{flex:none; order:-1; height:47dvh; min-height:340px}
+  .panel{display:none; flex:1; min-height:280px}
+  .panel.mob-on{display:flex}
+  #tabbar{display:flex}
+  .brand span{display:none}
+  .pill{font-size:12px; padding:5px 8px}
+  /* Крупнее и читаемее на пальце */
+  .tabs{padding:8px}
+  .tabs button{font-size:11.5px; padding:11px 14px; min-width:78px; text-align:center}
+  #tabbar button{min-width:64px; font-size:8.5px; padding:7px 4px}
+  #skillBar{bottom:38px}
+  #petLayer{bottom:120px; left:8px}
+  #stanceBar{bottom:72px; right:8px}
+  #hintCard{bottom:100px}
+  /* Баффы уходят в строку под шапкой арены — HP-бар свободен */
+  #buffBar{position:absolute; top:42px; left:8px; right:8px; max-width:none; max-height:none;
+    flex-direction:row; flex-wrap:nowrap; align-items:center; justify-content:flex-start;
+    gap:5px; overflow-x:auto; scrollbar-width:none; padding-bottom:2px}
+  #buffBar::-webkit-scrollbar{height:0}
+  .buff{flex:0 0 auto}
+  .hp-zone{top:78px; padding:0 10px}
+  #comboWrap{top:auto; bottom:96px; left:8px}
+}
+@media (min-width:1121px){ .panel{display:flex !important} }

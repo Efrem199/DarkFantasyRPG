@@ -1,0 +1,191 @@
+/* ============================================================
+   Арена: враг, HP, баффы, комбо, свита, стойки, умения, эффекты
+   ============================================================ */
+#arena{position:relative; min-width:0; min-height:0; overflow:hidden; border-radius:var(--rad);
+  border:1px solid var(--line);
+  background:radial-gradient(60% 42% at 50% 88%, rgba(70,40,110,.22), transparent 70%),
+    radial-gradient(90% 60% at 50% 115%, rgba(142,31,47,.14), transparent 70%),
+    linear-gradient(180deg, rgba(13,10,22,.55), rgba(8,6,13,.85));
+  box-shadow:inset 0 0 120px rgba(0,0,0,.55)}
+.fog{position:absolute; width:120%; height:60%; filter:blur(46px); opacity:.16; pointer-events:none;
+  background:radial-gradient(ellipse at center, #6a5aa0, transparent 70%)}
+.fog.f1{top:-10%; left:-20%; animation:drift1 34s ease-in-out infinite alternate}
+.fog.f2{bottom:-14%; right:-25%; background:radial-gradient(ellipse at center,#5f2240,transparent 70%);
+  animation:drift2 42s ease-in-out infinite alternate}
+.zone-tag{position:absolute; top:12px; left:0; right:0; text-align:center; pointer-events:none; z-index:4}
+.zone-tag span{display:inline-block; padding:4px 14px; font-family:'Cinzel',serif; font-size:10px;
+  letter-spacing:3px; text-transform:uppercase; color:var(--mut); border:1px solid var(--line);
+  border-radius:99px; background:rgba(10,8,17,.55); backdrop-filter:blur(4px)}
+.depth-chip{position:absolute; top:12px; left:12px; z-index:6; pointer-events:none; padding:5px 10px;
+  border-radius:10px; font-size:11px; font-weight:800; border:1px solid var(--line); background:rgba(10,8,17,.55);
+  display:flex; align-items:center; gap:6px}
+.depth-chip b{color:var(--blood)}
+.depth-chip .mc{font-style:normal; font-size:9px; letter-spacing:1px; text-transform:uppercase;
+  padding:2px 6px; border-radius:6px; border:1px solid currentColor}
+.depth-chip .mc.farm{color:var(--grn)}
+.depth-chip .mc.rift{color:#c88cff; animation:bossBlink 1.4s ease infinite}
+
+#buffBar{position:absolute; top:12px; right:12px; z-index:6; display:flex; flex-direction:column; gap:4px;
+  align-items:flex-end; max-width:34%; max-height:62%; overflow:hidden; pointer-events:none}
+.buff{display:flex; align-items:center; gap:5px; padding:4px 8px; border-radius:9px; font-size:10px;
+  font-weight:800; border:1px solid var(--line2); background:rgba(10,8,17,.7); font-variant-numeric:tabular-nums}
+.buff svg{width:12px;height:12px}
+.buff.b-dmg{color:#ff8a8e; border-color:rgba(229,72,77,.5)}
+.buff.b-gold{color:var(--gold); border-color:rgba(232,185,78,.5)}
+.buff.b-haste{color:#a794e8; border-color:rgba(139,108,240,.5)}
+.buff.b-storm{color:#ffb14e; border-color:rgba(255,177,78,.5)}
+.buff.b-step{color:#8ee6ff; border-color:rgba(106,217,255,.5)}
+.buff.b-oath{color:#ff6f7a; border-color:rgba(229,72,77,.6)}
+.buff.b-name{color:#e8d98a; border-color:rgba(232,185,78,.4)}
+.buff.b-oil{color:var(--rash); border-color:rgba(201,183,154,.45)}
+.buff.b-ink{color:var(--rwhis); border-color:rgba(157,140,255,.45)}
+.buff.b-curse{color:#ff5c6e; border-color:rgba(255,92,110,.6); animation:bossBlink 1.6s ease infinite}
+
+/* Полоса HP держится в центральном коридоре и не заезжает под баффы слева/справа */
+.hp-zone{position:absolute; top:46px; left:0; right:0; z-index:4; display:flex; flex-direction:column;
+  align-items:center; gap:6px; pointer-events:none; padding:0 clamp(104px,18vw,210px)}
+.hpwrap, #bossTimerWrap{width:100%; max-width:520px}
+.mob-name{font-family:'Cinzel',serif; font-weight:700; font-size:clamp(14px,2.2vmin,19px); letter-spacing:1.2px;
+  text-align:center; text-shadow:0 2px 18px rgba(0,0,0,.9)}
+.mob-name .tag{font-size:.6em; letter-spacing:3px; margin-left:7px; padding:2px 7px; border-radius:6px;
+  vertical-align:middle; border:1px solid currentColor}
+.mob-name .boss-tag{color:var(--blood); animation:bossBlink 1.4s ease infinite}
+.mob-name .elite-tag{color:#c88cff}
+.mob-name .mark-tag{color:var(--gold); animation:bossBlink 1s ease infinite}
+.hpwrap{position:relative; width:min(520px,92%); height:20px; border-radius:99px; overflow:hidden;
+  background:#151021; border:1px solid #43365e; box-shadow:0 4px 24px rgba(0,0,0,.6), inset 0 2px 6px rgba(0,0,0,.7)}
+.hp-ghost,.hp-fill{position:absolute; inset:0; border-radius:99px; width:100%}
+.hp-ghost{background:rgba(245,215,110,.5); transition:width .55s ease .2s}
+.hp-ghost.snap{transition:none}
+.hp-fill{background:linear-gradient(90deg,#7c1424,var(--blood) 60%,#ff7a6e); transition:width .12s ease;
+  box-shadow:0 0 14px rgba(229,72,77,.7)}
+.hp-fill::after{content:""; position:absolute; inset:0; border-radius:99px;
+  background:repeating-linear-gradient(115deg, transparent 0 10px, rgba(255,255,255,.09) 10px 20px);
+  animation:stripes 1.1s linear infinite}
+.hp-shield{position:absolute; top:0; bottom:0; right:0; background:rgba(140,216,255,.4);
+  border-left:1px solid #8cd8ff; border-radius:0 99px 99px 0}
+.hp-text{position:absolute; inset:0; display:grid; place-items:center; font-size:11px; font-weight:800;
+  color:#fff; text-shadow:0 1px 3px #000; font-variant-numeric:tabular-nums}
+#bossTimerWrap{position:relative; width:min(520px,92%); height:8px; display:none}
+#bossTimerWrap .bt-clip{position:absolute; inset:0; border-radius:99px; overflow:hidden;
+  background:#151021; border:1px solid #5e2436}
+#bossTimer{position:absolute; inset:0; width:100%; background:linear-gradient(90deg,#ffb14e,var(--blood));
+  transition:width .1s linear}
+#bossTime{position:absolute; right:0; top:-18px; font-size:10px; font-weight:800; color:#ffb14e;
+  font-variant-numeric:tabular-nums; text-shadow:0 1px 4px #000}
+
+#comboWrap{position:absolute; left:12px; top:44px; z-index:4; width:94px; opacity:0; transition:opacity .3s}
+#comboWrap.on{opacity:1}
+#comboWrap .cn{font-family:'Cinzel',serif; font-size:11.5px; font-weight:900; color:#ffb14e;
+  text-shadow:0 0 10px rgba(255,177,78,.6)}
+#comboWrap .cb{height:5px; margin-top:3px; border-radius:99px; background:#1c1630; overflow:hidden; border:1px solid #43365e}
+#comboWrap .cb i{display:block; height:100%; width:100%; background:linear-gradient(90deg,#ffb14e,var(--blood)); transform-origin:left}
+
+.rune{position:absolute; left:50%; top:56%; transform:translate(-50%,-50%); width:min(70vmin,520px);
+  opacity:.3; pointer-events:none; animation:spin 70s linear infinite; filter:drop-shadow(0 0 22px rgba(139,108,240,.35))}
+#mob{position:absolute; left:50%; top:56%; transform:translate(-50%,-50%); z-index:3;
+  width:min(42vmin,300px); aspect-ratio:1/1.06; padding:0; border:0; background:none; cursor:crosshair;
+  user-select:none; -webkit-user-select:none; outline:none; touch-action:manipulation}
+#mobInner{width:100%; height:100%; animation:bob 3.6s ease-in-out infinite; will-change:transform}
+#mobInner svg{width:100%; height:100%; overflow:visible}
+#mob.hit #mobInner{animation:hitShake .18s ease, bob 3.6s ease-in-out .18s infinite}
+#mob.dying #mobInner{animation:die .6s ease forwards}
+#mob.flash svg{filter:brightness(2.2) saturate(.3)}
+#bossVeil{position:absolute; inset:0; z-index:2; pointer-events:none; opacity:0; transition:opacity .8s;
+  background:radial-gradient(120% 100% at 50% 50%, transparent 46%, rgba(142,31,47,.38) 100%)}
+#bossVeil.on{opacity:1; animation:veilPulse 2.6s ease-in-out infinite}
+#bossVeil.elite{opacity:1; background:radial-gradient(120% 100% at 50% 50%, transparent 48%, rgba(122,60,190,.32) 100%)}
+#bossVeil.marked{opacity:1; background:radial-gradient(120% 100% at 50% 50%, transparent 44%, rgba(232,185,78,.34) 100%)}
+
+#weak{position:absolute; z-index:6; width:44px; height:44px; margin:-22px 0 0 -22px; cursor:pointer;
+  display:none; place-items:center; animation:weakPulse .9s ease-in-out infinite}
+#weak.on{display:grid}
+#weak svg{width:100%;height:100%; color:var(--blood); filter:drop-shadow(0 0 10px rgba(229,72,77,.9))}
+
+#petLayer{position:absolute; left:12px; bottom:130px; z-index:4; display:flex; flex-direction:column; gap:8px; pointer-events:none}
+.pet-orb{width:38px; height:38px; border-radius:12px; display:grid; place-items:center;
+  border:1px solid currentColor; background:rgba(10,8,17,.55); animation:petFloat 4.2s ease-in-out infinite}
+.pet-orb:nth-child(2){animation-delay:-1.4s} .pet-orb:nth-child(3){animation-delay:-2.8s}
+.pet-orb svg{width:24px;height:24px; filter:drop-shadow(0 0 6px currentColor)}
+.pet-orb.act{animation:petAct .5s ease}
+
+#stanceBar{position:absolute; right:12px; bottom:76px; z-index:5; display:flex; flex-direction:column; gap:5px; align-items:flex-end}
+.st-btn{display:flex; align-items:center; gap:6px; padding:5px 9px; border-radius:10px; cursor:pointer;
+  font-size:10px; font-weight:800; letter-spacing:.4px; transition:.18s;
+  border:1px solid var(--line2); background:rgba(10,8,17,.7); color:var(--mut)}
+.st-btn svg{width:13px;height:13px}
+.st-btn:hover{color:var(--txt)}
+.st-btn.on{color:var(--gold); border-color:rgba(232,185,78,.55); background:rgba(232,185,78,.1);
+  box-shadow:0 0 16px -6px var(--gold)}
+
+#skillBar{position:absolute; bottom:42px; left:0; right:0; z-index:5; display:flex; justify-content:center;
+  gap:8px; flex-wrap:wrap; padding:0 10px}
+.sk-btn{position:relative; width:52px; height:52px; border-radius:14px; cursor:pointer; overflow:hidden;
+  border:1px solid var(--line2); background:rgba(14,10,24,.82); color:#c6bbf0; display:grid; place-items:center; transition:.18s}
+.sk-btn svg{width:21px;height:21px; position:relative; z-index:2}
+.sk-btn .cdmask{position:absolute; left:0; right:0; bottom:0; background:rgba(6,4,12,.8); z-index:3;
+  display:grid; justify-content:center; font-size:12px; font-weight:800; color:#fff; padding-top:2px;
+  align-content:start; font-variant-numeric:tabular-nums}
+.sk-btn .key{position:absolute; top:2px; right:4px; z-index:4; font-size:9px; color:var(--mut); font-weight:800}
+.sk-btn.ready{border-color:rgba(139,108,240,.7); box-shadow:0 0 18px -6px var(--vio); color:#fff}
+.sk-btn.ult{border-radius:50%}
+.sk-btn.ult.ready{border-color:var(--gold); color:var(--gold); box-shadow:0 0 22px -5px var(--gold)}
+.sk-btn.ready:hover{transform:translateY(-2px)}
+.sk-btn:active{transform:scale(.94)}
+
+.hint-chips{position:absolute; bottom:11px; left:0; right:0; z-index:4; display:flex; justify-content:center;
+  gap:6px; pointer-events:none; flex-wrap:wrap; padding:0 10px}
+.chip{font-size:10px; font-weight:700; color:var(--mut); padding:4px 9px; border-radius:99px;
+  border:1px solid var(--line); background:rgba(10,8,17,.55); backdrop-filter:blur(4px)}
+.chip b{color:var(--txt)}
+
+#hintCard{position:absolute; left:50%; bottom:104px; transform:translateX(-50%); z-index:8;
+  width:min(430px,94%); padding:12px 14px; border-radius:14px; display:none; text-align:left;
+  border:1px solid rgba(139,108,240,.45); background:linear-gradient(180deg, rgba(24,18,42,.97), rgba(11,8,19,.97));
+  box-shadow:0 18px 46px -12px #000, 0 0 30px -12px var(--vio); animation:hintIn .45s cubic-bezier(.2,.9,.3,1.2)}
+#hintCard.on{display:block}
+#hintCard .ht{font-family:'Cinzel',serif; font-size:13px; color:var(--gold); letter-spacing:1px; margin-bottom:5px;
+  display:flex; align-items:center; gap:7px}
+#hintCard .ht svg{width:15px;height:15px}
+#hintCard .hp{font-size:11.5px; color:var(--mut); line-height:1.6}
+#hintCard .hx{margin-top:9px; padding:7px 14px; border-radius:9px; cursor:pointer; font-size:11px; font-weight:800;
+  border:1px solid var(--line2); background:rgba(255,255,255,.05); color:var(--txt)}
+#hintCard .hx:hover{border-color:var(--vio)}
+
+#zoneBanner{position:absolute; left:50%; top:44%; transform:translate(-50%,-50%); z-index:7;
+  width:min(460px,92%); text-align:center; pointer-events:none; opacity:0}
+#zoneBanner.show{animation:zb 4.6s ease forwards}
+#zoneBanner .zn{font-family:'Cinzel',serif; font-size:clamp(16px,3.2vmin,26px); font-weight:900; letter-spacing:4px;
+  color:#f0e6d2; text-shadow:0 0 30px rgba(0,0,0,.95)}
+#zoneBanner .zr{margin-top:7px; font-size:12px; color:var(--gold); font-weight:800; letter-spacing:1px}
+#zoneBanner .zl{margin-top:5px; font-size:11px; color:var(--mut); font-style:italic; line-height:1.6}
+
+#fx{position:absolute; inset:0; z-index:5; pointer-events:none; overflow:hidden}
+.dmg{position:absolute; transform:translate(-50%,0); font-weight:800; font-size:19px; color:#fff;
+  text-shadow:0 2px 8px rgba(0,0,0,.9), 0 0 16px rgba(229,72,77,.5); font-variant-numeric:tabular-nums;
+  animation:dmgUp .85s cubic-bezier(.2,.7,.3,1) forwards; white-space:nowrap; text-align:center}
+.dmg svg{width:14px;height:14px;vertical-align:-2px}
+.dmg.crit{font-family:'Cinzel',serif; font-size:28px; color:#ffb14e; text-shadow:0 0 18px rgba(255,120,60,.9), 0 2px 6px #000}
+.dmg.auto{font-size:12px; color:#a794e8; text-shadow:0 1px 4px #000; opacity:.9}
+.dmg.gold{font-size:15px; color:var(--gold); text-shadow:0 0 14px rgba(232,185,78,.7)}
+.dmg.xpg{font-size:12px; color:var(--vio)}
+.dmg.exec{font-family:'Cinzel',serif; font-size:23px; color:#8ee6ff; text-shadow:0 0 18px rgba(106,217,255,.9)}
+.dmg.sig{font-family:'Cinzel',serif; font-size:20px; color:#ff9a4c; text-shadow:0 0 18px rgba(255,154,76,.9)}
+.dmg.ult{font-family:'Cinzel',serif; font-size:26px; color:var(--gold); text-shadow:0 0 26px rgba(232,185,78,.95)}
+.dmg.poison{font-size:12px; color:#7fe6a8}
+.dmg.pet{font-size:13px; color:#b9a8ff}
+.dmg.res{font-size:14px; font-weight:800}
+.soul{position:absolute; width:9px; height:9px; border-radius:50%;
+  background:radial-gradient(circle,#fff, var(--sc,#9fe86a) 60%, transparent);
+  box-shadow:0 0 12px var(--sc,#9fe86a); animation:soulFly var(--d,.9s) ease-out forwards}
+.coin-fly{position:fixed; z-index:60; width:16px; height:16px; pointer-events:none; color:var(--gold);
+  transition:transform .7s cubic-bezier(.3,.7,.3,1), opacity .7s; filter:drop-shadow(0 0 6px rgba(232,185,78,.8))}
+.coin-fly svg{width:100%;height:100%}
+
+#lvlBanner{position:absolute; inset:0; z-index:6; display:grid; place-items:center; pointer-events:none; opacity:0}
+#lvlBanner.show{animation:banner 2s ease forwards}
+#lvlBanner div{font-family:'Cinzel',serif; font-weight:900; font-size:clamp(19px,4.4vmin,36px); letter-spacing:5px;
+  background:linear-gradient(180deg,#fff,var(--vio)); -webkit-background-clip:text; background-clip:text;
+  color:transparent; filter:drop-shadow(0 0 30px rgba(139,108,240,.8)); text-align:center}
+#lvlBanner small{display:block; font-size:11px; letter-spacing:3px; color:var(--mut); -webkit-text-fill-color:var(--mut); margin-top:6px}
+.shake{animation:shake .32s ease}
