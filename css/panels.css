@@ -464,3 +464,86 @@
   border-radius:10px; font-size:9.5px; line-height:1.5; color:var(--mut);
   background:rgba(0,0,0,.22); border:1px dashed var(--line2)}
 .city-mutual svg{width:12px;height:12px; flex:none; margin-top:1px; color:var(--gold)}
+
+/* ---------- Сделки: знак на арене и карточка выбора ---------- */
+#pactBadge{position:absolute; top:14px; right:16px; z-index:22; display:none;
+  align-items:center; gap:6px; padding:7px 11px; border-radius:99px; cursor:pointer;
+  font-size:10px; font-weight:900; letter-spacing:.6px; text-transform:uppercase;
+  color:#fff; background:linear-gradient(180deg,rgba(255,92,110,.92),rgba(160,30,50,.92));
+  border:1px solid rgba(255,180,190,.6); box-shadow:0 0 22px -4px rgba(255,92,110,.9);
+  animation:pactPulse 2.2s ease-in-out infinite}
+#pactBadge.on{display:inline-flex}
+#pactBadge svg{width:14px; height:14px}
+@keyframes pactPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+#pactCard{position:absolute; inset:0; z-index:21; display:none; align-items:center;
+  justify-content:center; padding:16px; background:rgba(6,4,12,.74); backdrop-filter:blur(3px)}
+#pactCard.open{display:flex}
+.pact-card{width:min(420px,100%); padding:14px; border-radius:16px;
+  background:linear-gradient(180deg,#141020,#0a0812);
+  border:1px solid color-mix(in srgb, var(--pc) 55%, transparent);
+  box-shadow:0 0 44px -10px var(--pc), inset 0 1px 0 rgba(255,255,255,.05);
+  animation:pcIn .22s ease-out}
+@keyframes pcIn{from{transform:translateY(10px) scale(.97); opacity:0}}
+.pc-head{display:flex; align-items:center; gap:9px}
+.pc-ic{flex:none; width:36px; height:36px; border-radius:11px; display:grid; place-items:center;
+  color:var(--pc); border:1px solid currentColor; background:rgba(0,0,0,.35)}
+.pc-ic svg{width:18px; height:18px}
+.pc-nm{flex:1; font-size:13px; font-weight:900; color:var(--pc)}
+.pc-nm small{display:block; font-size:9.5px; font-weight:700; color:var(--mut); margin-top:3px; line-height:1.45}
+.pc-timer{flex:none; font-size:12px; font-weight:900; color:var(--pc);
+  min-width:38px; text-align:right; font-variant-numeric:tabular-nums}
+.pc-opts{display:flex; flex-direction:column; gap:7px; margin:11px 0 8px}
+.pc-opt{display:flex; flex-direction:column; gap:2px; text-align:left; cursor:pointer;
+  padding:9px 11px; border-radius:11px; color:var(--txt);
+  background:color-mix(in srgb, var(--pc) 9%, transparent);
+  border:1px solid color-mix(in srgb, var(--pc) 38%, transparent);
+  transition:background .14s, transform .12s}
+.pc-opt:hover:not(.off){background:color-mix(in srgb, var(--pc) 20%, transparent); transform:translateY(-1px)}
+.pc-opt.off{opacity:.4; cursor:not-allowed}
+.po-n{font-size:11.5px; font-weight:900}
+.po-d{font-size:10px; color:var(--mut); line-height:1.45}
+.po-c{font-size:8.5px; font-weight:900; text-transform:uppercase; letter-spacing:.7px; color:var(--pc)}
+.pc-no{display:block; width:100%; padding:7px; border-radius:10px; cursor:pointer;
+  font-size:9.5px; font-weight:800; color:var(--mut);
+  background:rgba(255,255,255,.03); border:1px solid var(--line2)}
+.pc-no:hover{color:var(--txt)}
+
+/* бейджи живых эффектов сделок */
+#pactBuffs{display:none; flex-wrap:wrap; gap:5px; margin-top:8px}
+#pactBuffs.on{display:flex}
+#pactBuffs .pb{display:inline-flex; align-items:center; gap:4px; padding:3px 7px;
+  border-radius:99px; font-size:8.5px; font-weight:900;
+  color:#9ef0c8; background:rgba(111,227,165,.10); border:1px solid rgba(111,227,165,.35)}
+#pactBuffs .pb.bad{color:#ff9a9d; background:rgba(229,72,77,.10); border-color:rgba(229,72,77,.35)}
+#pactBuffs .pb svg{width:11px; height:11px}
+
+/* ---------- Испытания Бездны ---------- */
+.trial-card{padding:10px; border-radius:14px; margin-top:9px;
+  border:1px dashed var(--line2); background:rgba(255,255,255,.02)}
+.trial-card.on{border-style:solid; border-color:color-mix(in srgb, var(--tc) 50%, transparent);
+  background:color-mix(in srgb, var(--tc) 8%, transparent);
+  box-shadow:0 0 26px -14px var(--tc)}
+.seals{display:flex; gap:5px; margin:9px 0 7px}
+.seal{flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer;
+  padding:7px 3px; border-radius:10px; color:var(--tc);
+  background:rgba(0,0,0,.3); border:1px solid color-mix(in srgb, var(--tc) 40%, transparent);
+  transition:transform .12s, background .14s}
+.seal:hover:not(.locked){transform:translateY(-2px); background:color-mix(in srgb, var(--tc) 16%, transparent)}
+.seal.locked{opacity:.35; cursor:not-allowed; border-color:var(--line2)}
+.seal.done{border-style:double; border-width:3px}
+.se-ic svg{width:15px; height:15px}
+.se-n{font-size:7.5px; font-weight:800; text-align:center; line-height:1.15; color:var(--txt)}
+.se-m{font-size:8.5px; font-weight:900}
+.trial-meta{font-size:9px; color:var(--mut); line-height:1.5; margin-top:2px}
+
+/* ---------- Пульс темпа ---------- */
+#pulseStrip{position:absolute; left:50%; bottom:8px; transform:translateX(-50%); z-index:12;
+  display:flex; gap:12px; padding:4px 12px; border-radius:99px;
+  background:rgba(8,6,14,.72); border:1px solid var(--line); font-size:9.5px; font-weight:800;
+  color:var(--mut); white-space:nowrap}
+#pulseStrip .ps-item{display:inline-flex; align-items:center; gap:3px}
+#pulseStrip .ps-item svg{width:11px; height:11px; color:#5b5378}
+#pulseStrip b{color:var(--txt)}
+#pulseStrip .ps-item.hot b{color:var(--gold)}
+@media (max-width:640px){ #pulseStrip{bottom:4px; font-size:8.5px; gap:8px; padding:3px 8px} }

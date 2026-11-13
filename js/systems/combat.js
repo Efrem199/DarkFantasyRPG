@@ -121,6 +121,20 @@ function bonuses(){
   B.allMul *= 1 + 0.03*S.ritualEdge;
   /* города и кланы: репутация, присяга в войне */
   if (S.city) clanBonuses(B);
+  /* испытание: щедрее и опаснее одновременно */
+  if (S.trial && S.trial.on){
+    const tm = trialGoldMul();
+    B.goldMul *= tm; B.xpMul *= tm; B.dropMul *= 1 + (tm - 1) * 0.35;
+  }
+  /* сделки: временные эффекты с ценой */
+  if (S.pact && S.pact.buffs.length){
+    B.allMul *= pactMul('all');
+    B.goldMul *= pactMul('gold');
+    B.dpsMul *= pactMul('dps');
+    B.dropMul *= pactMul('drop');
+    B.whisMul *= pactMul('whis');
+    if (pactHas('nocombo')) B.comboCap = 0;
+  }
   const tn = TRUE_NAMES.find(t=>t.id===S.trueName);
   if (tn) tn.apply(B);
   /* Правило зоны */
@@ -164,12 +178,16 @@ function stats(){
   const B=bonuses(), u=S.u;
   const c=CLASSES[S.cls]||{cm:1,dm:1,critBase:5,critMul:2.5};
   const pm=1+0.10*u.power;
+  /* Синергия клинка и слуг: 200-й уровень «+3 клика» не виден вообще
+     (+0.5% от общей силы). Даём им ещё и мягкий множитель, чтобы каждая
+     покупка в поздней игре читалась как «стало заметно сильнее». */
+  const synC=1+0.012*u.blade, synD=1+0.012*u.servant;
   /* Мультипликативное ядро лавки (awaken/echo/crown) */
   const shopMul=(1+12/100*u.awaken)*(1+13/100*u.echo)*(1+14/100*u.crown);
   return {
     B,
-    click:(3+(S.lvl-1)*2+u.blade*3)*pm*shopMul*c.cm*B.clickMul*B.allMul,
-    dps:(S.lvl+u.servant*4)*pm*shopMul*c.dm*B.dpsMul*B.allMul,
+    click:(3+(S.lvl-1)*2+u.blade*3)*pm*shopMul*synC*c.cm*B.clickMul*B.allMul,
+    dps:(S.lvl+u.servant*4)*pm*shopMul*synD*c.dm*B.dpsMul*B.allMul,
     crit:clamp(c.critBase+3*u.crit+B.crit,0,B.critCap),
     critMul:c.critMul+B.critMulAdd,
     goldMul:(1+0.25*u.greed)*B.goldMul,
@@ -262,7 +280,8 @@ function makeMob(stage){
   const riftBoss = riftOn() && S.rift.kills>=S.rift.need;
   const boss = !riftBoss && stage%10===0;
   const wantMark = !boss && !riftBoss && S.markPending;
-  const elite = !boss && !wantMark && !riftBoss && stage>3 && Math.random()<0.10;
+  const forcedElite = !boss && !wantMark && !riftBoss && pactForcedElite();
+  const elite = forcedElite || (!boss && !wantMark && !riftBoss && stage>3 && Math.random()<0.10);
   const zi = zoneIndex(stage), Z = activeZones()[zi], r = Z.r||{};
   let name, fam;
   if (riftBoss){ name=S.rift.boss; fam=Math.floor(Math.random()*6); }
@@ -276,6 +295,7 @@ function makeMob(stage){
     name=pick(MARK_NAMES); fam=Math.floor(Math.random()*6);
   } else { fam=(stage*7+zi*3)%6; name=FAM_NAMES[fam][(stage+zi)%FAM_NAMES[fam].length]; }
   let mult = riftBoss?14:boss?BOSS_HP_MULT:elite?3.4:wantMark?7:1;
+  if (S.trial && S.trial.on) mult *= trialHpMul();
   if (boss && r.bossHp) mult *= r.bossHp;
   const hp = Math.ceil(hpFor(stage)*mult);
   return {stage, boss, elite, mark:wantMark, riftBoss, fam, name, hp, maxHp:hp,
@@ -463,6 +483,7 @@ function spawnMob(){
     if (prevZone>=0) zoneBanner();
   }
   const btn=$('#mob'); btn.classList.remove('dying');
+  if (mob.elite && S.pact && S.pact.elites > 0) pactConsumeElite();
   $('#mobInner').innerHTML=mob.svg;
   const tag = mob.riftBoss?'<span class="tag mark-tag">РАЗЛОМ</span>':
     mob.boss?'<span class="tag boss-tag">ВЛАДЫКА</span>':
@@ -491,6 +512,15 @@ function spawnMob(){
   renderChips(); renderModeChip();
 }
 function bossFail(){
+  /* Испытание: любой провал Владыки — провал печати, откат к чекпоинту */
+  if (S.trial && S.trial.on && (mob.boss || mob.riftBoss) && !mob.mark){
+    const name = mob.name;
+    sfx.fail();
+    trialFail();
+    log('<b>' + esc(name) + '</b> не сдался. Печать погасла.', 'boss');
+    spawnMob();
+    return;
+  }
   if (mob.mark){
     log('Меченый ускользнул в темноту. Метка погасла.','boss');
     S.markPending=false; sfx.fail(); spawnMob(); return;
@@ -610,11 +640,15 @@ function gameTick(){
   if (voiceT<=0){ voiceT=200+Math.random()*280; if (Math.random()<0.55) voiceOfAbyss(); }
   checkExpeditions();
   if (S.city) cityTick();
+  if (S.pact) pactsTick();
+  trialAutoCheck();
+  pulseTick(dt);
+  if (S.pact && S.pact.buffs.length) renderPactBuffs();
   /* Автопокупка — раз в секунду, одно улучшение */
   autoTimerShop+=dt;
   if (S.autoOn && autoTimerShop>1){ autoTimerShop=0; autoBuyTick(); }
   statTimer+=dt; saveTimer+=dt;
-  if (statTimer>0.4){ statTimer=0; renderStats(); renderGold(); renderShopAfford(); renderSkillBar(); renderBuffs(); }
+  if (statTimer>0.4){ statTimer=0; renderStats(); renderGold(); renderShopAfford(); renderSkillBar(); renderBuffs(); renderPulse(); }
   else if (ch){ renderBuffs(); renderSkillBar(); }
   if (saveTimer>5){ saveTimer=0; save(true); }
 }

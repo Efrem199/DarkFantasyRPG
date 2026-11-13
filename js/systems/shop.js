@@ -173,6 +173,7 @@ function buy(id,forced){
   const cost=bulkCost(it,n,ctx);
   if (S.gold<cost) return;
   S.gold-=cost; S.u[id]+=n; S.purchases+=n;
+  if (typeof pulseBuy==='function') pulseBuy();
   sfx.buy(); log('Куплено: <b>'+it.name+'</b> ×'+n+' (ур. '+S.u[id]+')','buy');
   contractTick('spend',cost);
   renderShop(); renderGold(); renderStats(); checkAch(); save(true);

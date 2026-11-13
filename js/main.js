@@ -168,6 +168,26 @@ $$('#tabbar button').forEach(b=>{
   b.innerHTML=IC[m[b.dataset.v]]+b.textContent;
 });
 
+/* ---------------- Ввод: сделки и испытания ---------------- */
+document.addEventListener('click',e=>{
+  const pb=e.target.closest('#pactBadge');
+  if (pb){ if (S.pact && S.pact.now) renderPactCard(); else log('Сделок пока нет. Тьма придёт сама.','info'); return; }
+  const po=e.target.closest('[data-pact]');
+  if (po){
+    const k=po.dataset.pact;
+    if (k==='refuse') refusePact(); else takePact(k);
+    return;
+  }
+  const tb=e.target.closest('[data-trial]');
+  if (tb){
+    const a=tb.dataset.trial;
+    if (a==='start') trialStart(+tb.dataset.seal);
+    else if (a==='stop') trialStop(true);
+    else if (a==='fail') trialFail();
+    return;
+  }
+});
+
 /* ---------------- Горячие клавиши ---------------- */
 addEventListener('keydown',e=>{
   if (e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
@@ -193,6 +213,7 @@ addEventListener('keydown',e=>{
   else if (k==='g') switchView('right','forge');
   else if (k==='d') switchView('right','deeds');
   else if (k==='v') switchView('right','town');
+  else if (k==='y'){ if (S.pact&&S.pact.now) renderPactCard(); }
   else if (k==='p') switchView('right','dark');
   else if (k==='f') switchView('right','pets');
   else if (k==='c') switchView('left','codex');
@@ -217,6 +238,8 @@ lastZone=zoneIndex(S.stage);
 spawnMob();
 /* Города и кланы: состояние есть всегда, даже без сейва */
 if (!S.city) S.city = cityDef();
+if (!S.pact) S.pact = pactDef();
+if (!S.trial) S.trial = trialDef();
 renderAll();
 checkHidden();
 
@@ -250,6 +273,12 @@ window.CB = {
   CLANS, CITIES, CITY, CGOODS, renderTown, cityVisit, sellGood, buyGood, clanService,
   caravanTo, caravanArrive, warSide, warHelp, warReward, ensureWar, warPair,
   cityPrice, clanRep, repTier, addRep, clanBonuses, cityTick, LAYOUT, cityDef,
+  /* сделки, испытания, пульс */
+  PACTS, pactDef, offerPact, takePact, refusePact, pactsTick, pactMul, pactHas,
+  renderPactCard, renderPactBadge, renderPactBuffs, pactForcedElite, pactConsumeElite,
+  TRIALS, trialDef, trialStart, trialStop, trialFail, trialUnlocked,
+  trialGoldMul, trialHpMul, renderTrialCard, trialAutoCheck,
+  PULSE, pulseTick, pulseMilestone, pulseNudge, pulseReset, pulseBuy, renderPulse,
   num, validItem,
   // бой и формулы
   bonuses, stats, comboMul, depthCurve, xpNeed, hpFor, goldFor, xpFor,

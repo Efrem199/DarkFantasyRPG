@@ -48,7 +48,11 @@ const DEF = () => ({
   autoOn:false, autoBuy:{}, shopOrder:['blade','servant','crit','greed','power','void'],
   hints:[], goals:[],
   /* города и кланы */
-  city:null
+  city:null,
+  /* сделки */
+  pact:null,
+  /* испытания */
+  trial:null
 });
 /* S.city заполняется в main.js: cityDef() ссылается на CLANS из clans.js,
    а тот грузится позже — на верхнем уровне это была бы TDZ-ошибка. */
@@ -185,6 +189,27 @@ function migrate(data){
   const cv=dcity.caravan;
   out.city.caravan=(cv&&CITY(cv.to)&&num(cv.end,0,0)>0)
     ? { from:CITY(cv.from)?cv.from:'vermine', to:cv.to, end:num(cv.end,0,0) } : null;
+  /* --- сделки: активная сделка не переживает перезагрузку (её можно
+     обойти перезаходом), а счётчики и эффекты — переживают --- */
+  out.pact=pactDef();
+  const dp=data.pact&&typeof data.pact==='object'?data.pact:{};
+  out.pact.taken=intIn(dp.taken,0,0);
+  out.pact.refused=intIn(dp.refused,0,0);
+  out.pact.elites=intIn(dp.elites,0,0,3);
+  out.pact.lastId=typeof dp.lastId==='string'?dp.lastId:null;
+  out.pact.next=now()+60000;   /* после загрузки знак не падает сразу */
+  if (Array.isArray(dp.buffs)){
+    out.pact.buffs=dp.buffs.filter(b=>b&&typeof b.k==='string'&&num(b.until,0,0)>now()&&
+      num(b.v,0,-0.9,10)!==0).slice(0,8)
+      .map(b=>({k:b.k, until:Math.min(num(b.until,0,0), now()+3600e3), v:num(b.v,0,-0.9,10)}));
+  }
+  /* --- испытания: активное испытание сбрасывается, счётчики живут --- */
+  out.trial=trialDef();
+  const dtr=data.trial&&typeof data.trial==='object'?data.trial:{};
+  out.trial.fails=intIn(dtr.fails,0,0);
+  out.trial.best=intIn(dtr.best,0,0,TRIALS.length);
+  out.trial.done=(Array.isArray(dtr.done)?dtr.done:[]).filter(id=>TRIALS.some(t=>t.id===id));
+  out.trial.cp=intIn(dtr.cp,1,1,1e6);
   const war=dcity.war;
   out.city.war=(war&&CLANS[war.a]&&CLANS[war.b]&&war.a!==war.b)
     ? { key:String(war.key||''), a:war.a, b:war.b,

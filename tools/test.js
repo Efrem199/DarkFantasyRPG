@@ -20,7 +20,8 @@ const FILES = [
   'js/systems/combat.js', 'js/systems/shop.js', 'js/systems/skills.js',
   'js/systems/prestige.js', 'js/systems/pets.js', 'js/systems/inventory.js',
   'js/systems/craft.js', 'js/systems/map.js', 'js/systems/city.js',
-  'js/systems/clans.js', 'js/systems/hidden.js',
+  'js/systems/clans.js', 'js/systems/pacts.js', 'js/systems/trials.js',
+  'js/systems/pulse.js', 'js/systems/hidden.js',
   'js/ui/render.js', 'js/ui/modals.js', 'js/ui/hints.js',
   'js/main.js'
 ];
@@ -515,11 +516,129 @@ console.log('\n6. Города Пепла: кланы, торговля, вой�
 }
 
 /* ============================================================
-   7. ЦЕЛОСТНОСТЬ РАЗМЕТКИ И РЕСУРСОВ
+   7. СДЕЛКИ, ИСПЫТАНИЯ, ПУЛЬС
+   ============================================================ */
+console.log('\n7. Сделки, испытания, пульс');
+
+{
+  const { w, api, error } = boot();
+  if (error) { no('загрузка', error.message); }
+  else {
+    const S = api.S;
+    S.cls = 'knight'; S.maxStage = 40; S.gold = 1e6;
+
+    /* --- сделки --- */
+    is('у сделки всегда есть минимум два варианта, и они расходятся',
+      api.PACTS.every(p => p.opts.length >= 2 &&
+        p.opts[0].d !== p.opts[1].d), api.PACTS.length + ' видов');
+    is('каждый вариант сделки называет свою цену',
+      api.PACTS.every(p => p.opts.every(o => typeof o.cost === 'string' && o.cost.length)));
+
+    api.offerPact();
+    is('сделка предлагается', !!S.pact.now);
+    const pid = S.pact.now, pp = api.PACTS.find(x => x.id === pid);
+    const dmg0 = api.stats().dps;
+    const opt = pp.opts.find(o => !o.can || o.can());
+    api.takePact(opt.k);
+    is('после выбора сделка закрывается', !S.pact.now);
+    is('выбор засчитан', S.pact.taken === 1, 'заключено ' + S.pact.taken);
+    is('сделка не предлагается снова сразу', (() => {
+      api.offerPact(); const a = !!S.pact.now;
+      S.pact.now = null; S.pact.next = Date.now() + 1e6; return a;
+    })());
+
+    /* эффект реально виден в математике */
+    S.pact.buffs = [{ k:'all', until: Date.now() + 60000, v: 0.5 }];
+    const B = api.bonuses();
+    is('эффект сделки входит в bonuses()', B.allMul > 1.4, 'allMul ' + B.allMul.toFixed(2));
+    S.pact.buffs = [{ k:'all', until: Date.now() - 1, v: 0.5 }];
+    is('истёкший эффект не считается', api.pactMul('all') === 1);
+    S.pact.buffs = [];
+
+    /* цена отказа — не ноль, но и не наказание */
+    api.offerPact();
+    const wh0 = S.res.whisper || 0;
+    api.refusePact();
+    is('отказ закрывает сделку и даёт компенсацию',
+      !S.pact.now && (S.res.whisper || 0) > wh0, 'Шёпот ' + wh0 + ' → ' + S.res.whisper);
+
+    /* --- испытания --- */
+    is('печатей пять и ставка растёт', api.TRIALS.length === 5 &&
+      api.TRIALS.every((t, i) => i === 0 || t.mult > api.TRIALS[i - 1].mult),
+      api.TRIALS.map(t => '×' + t.mult).join(' '));
+    is('вторая печать заперта до закрытия первой', !api.trialUnlocked(1));
+
+    S.maxStage = 30;
+    const B0 = api.bonuses();
+    api.trialStart(0);
+    is('испытание включается и запоминает чекпоинт',
+      S.trial.on && S.trial.cp === 30, 'чекпоинт ' + S.trial.cp);
+    const B2 = api.bonuses();
+    is('испытание умножает добычу',
+      api.bonuses().goldMul >= B0.goldMul * 2 - 1e-9,
+      '×2 к золоту: ' + B0.goldMul.toFixed(2) + ' → ' + api.bonuses().goldMul.toFixed(2));
+    is('и делает врагов живучее', api.makeMob(30).hp > api.hpFor(30),
+      'HP ' + api.makeMob(30).hp);
+
+    /* провал откатывает забег, вещи и ресурсы остаются */
+    S.stage = 44; S.runMax = 44;
+    S.inv.push({ i: 999, slot: 'weapon', rar: 2, lv: 30, n: 'Тестовый клинок', st: { click: 5 } });
+    const invLen = S.inv.length, goldBefore = S.gold;
+    api.trialFail();
+    is('провал откатывает к чекпоинту', S.stage === 30, 'глубина ' + S.stage);
+    is('провал не отнимает вещи и золото',
+      S.inv.length === invLen && S.gold >= goldBefore, 'инвентарь ' + S.inv.length);
+
+    /* сдача печати даёт награду и открывает следующую */
+    S.trial.on = false; S.maxStage = 40;
+    api.trialStart(0);
+    const sh0 = S.shards;
+    api.trialStop(true);
+    is('сдача печати даёт осколки', S.shards > sh0, '+' + (S.shards - sh0));
+    is('и открывает следующую печать', api.trialUnlocked(1));
+    is('испытание после сдачи выключено', !S.trial.on);
+
+    /* --- пульс --- */
+    api.pulseReset();
+    S.maxStage = 10;
+    api.pulseMilestone(10);
+    is('веха глубины даёт золото и отмечается', S.gold > 0);
+    api.pulseReset();
+    api.pulseTick(1);
+    api.renderPulse();
+    is('пульс рисует темп', ($ => $ && $.innerHTML.includes('глубин/мин'))(
+      w.document.getElementById('pulseStrip')));
+
+    /* --- сохранение --- */
+    S.pact.taken = 3; S.trial.done = ['t1'];
+    const raw = api.exportSave();
+    api.importSave(raw);
+    is('счётчики сделок и печатей переживают перезагрузку',
+      api.S.pact.taken === 3 && api.S.trial.done.includes('t1'));
+    is('активная сделка не сохраняется (перезаход не даёт обхода)',
+      api.S.pact.now === null && api.S.trial.on === false);
+
+    /* --- разметка --- */
+    api.offerPact();
+    api.renderPactCard();
+    const pc = w.document.getElementById('pactCard');
+    is('карточка сделки открывается с вариантами',
+      pc.classList.contains('open') && pc.innerHTML.includes('data-pact='));
+    S.trial.on = false;              /* карточка печатей вместо «идёт испытание» */
+    api.renderTrialCard();
+    const sealHtml = w.document.getElementById('trialCard').innerHTML;
+    is('карточка испытаний рисует все печати',
+      (sealHtml.match(/data-seal=/g) || []).length >= 1 && sealHtml.includes('Испытания Бездны'),
+      'кнопок-печатей: ' + (sealHtml.match(/data-seal=/g) || []).length);
+  }
+}
+
+/* ============================================================
+   8. ЦЕЛОСТНОСТЬ РАЗМЕТКИ И РЕСУРСОВ
    Заменяет часть «визуальной» проверки там, где браузера нет:
    ловит битые пути, внешние запросы, дубли id и рассинхрон JS↔HTML.
    ============================================================ */
-console.log('\n7. Целостность разметки и ресурсов');
+console.log('\n8. Целостность разметки и ресурсов');
 
 {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
@@ -572,6 +691,15 @@ console.log('\n7. Целостность разметки и ресурсов');
   const dupes = allIds.filter((id, i) => allIds.indexOf(id) !== i);
   is('в разметке нет дублей id', dupes.length === 0, [...new Set(dupes)].join(', '));
 
+  /* Иконки: IC.* — голый <svg viewBox> без width/height. Если в CSS нет
+     базового правила, иконка растягивается на весь контейнер (ровно так
+     появились «суперогромные» часы в карточке города). */
+  {
+    const cssAll = cssFiles.map(f => fs.readFileSync(path.join(ROOT, 'css', f), 'utf8')).join('\n');
+    is('у всех svg есть базовый размер в CSS',
+      /(^|[}\s;])svg\s*\{[^}]*width\s*:/.test(cssAll), 'правило svg{width:16px}');
+  }
+
   // --- порядок подключения скриптов: core → systems → ui → main ---
   // только реально подключённые скрипты (закомментированные не в счёт)
   const activeHtml = html.replace(/<!--[\s\S]*?-->/g, '');
@@ -594,12 +722,12 @@ console.log('\n7. Целостность разметки и ресурсов');
 }
 
 /* ============================================================
-   8. ОФЛАЙН-ЗАПУСК
+   9. ОФЛАЙН-ЗАПУСК
    Грузим index.html через HTTP с настоящей загрузкой ресурсов
    (web-платформа jsdom) и убеждаемся, что наружу не уходит ни один
    запрос, а игра стартует. Именно это гарантирует работу с file://.
    ============================================================ */
-console.log('\n8. Офлайн-запуск');
+console.log('\n9. Офлайн-запуск');
 {
   const http = require('http');
   const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript',

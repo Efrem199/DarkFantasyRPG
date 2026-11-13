@@ -347,6 +347,12 @@ function renderAll(){
   renderTrees(); renderPTree(); renderPrestCard(); renderTrueName(); renderGear(); renderPets(); renderPetLayer();
   renderCodex(); renderBuffs(); renderSkillBar(); renderStanceBar(); renderTabBadges(); renderForge(); renderDeeds();
   renderMap(); renderModeChip();
+  if (typeof renderPulse==='function') renderPulse();
+  if (typeof renderPactBadge==='function') renderPactBadge();
+  if (typeof renderPactBuffs==='function') renderPactBuffs();
+  if (typeof renderPactCard==='function') renderPactCard();
+  if (typeof renderTrialCard==='function') renderTrialCard();
+  if (typeof renderTown==='function') renderTown();
 }
 
 //# sourceURL=js/ui/render.js

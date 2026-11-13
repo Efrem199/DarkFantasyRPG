@@ -24,7 +24,8 @@ const FILES = [
   'js/systems/combat.js', 'js/systems/shop.js', 'js/systems/skills.js',
   'js/systems/prestige.js', 'js/systems/pets.js', 'js/systems/inventory.js',
   'js/systems/craft.js', 'js/systems/map.js', 'js/systems/city.js',
-  'js/systems/clans.js', 'js/systems/hidden.js',
+  'js/systems/clans.js', 'js/systems/pacts.js', 'js/systems/trials.js',
+  'js/systems/pulse.js', 'js/systems/hidden.js',
   'js/ui/render.js', 'js/ui/modals.js', 'js/ui/hints.js',
   'js/main.js'
 ];
