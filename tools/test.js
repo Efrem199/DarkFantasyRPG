@@ -20,12 +20,14 @@ const FILES = [
   'js/systems/combat.js', 'js/systems/shop.js', 'js/systems/skills.js',
   'js/systems/prestige.js', 'js/systems/pets.js', 'js/systems/inventory.js',
   'js/systems/craft.js', 'js/systems/map.js', 'js/systems/city.js',
-  'js/systems/clans.js', 'js/systems/hidden.js',
+  'js/systems/hidden.js',
   'js/ui/render.js', 'js/ui/modals.js', 'js/ui/hints.js',
   'js/main.js'
 ];
 
 let pass = 0, fail = 0;
+
+async function main() {
 const ok = (name, extra) => { pass++; console.log('  ✓ ' + name + (extra ? ' — ' + extra : '')); };
 const no = (name, why) => { fail++; console.log('  ✗ ' + name + (why ? ' — ' + why : '')); };
 const is = (name, cond, extra) => cond ? ok(name, extra) : no(name, extra);
@@ -329,5 +331,144 @@ console.log('\n5. Производительность');
   }
 }
 
+/* ============================================================
+   6. ЦЕЛОСТНОСТЬ РАЗМЕТКИ И РЕСУРСОВ
+   Заменяет часть «визуальной» проверки там, где браузера нет:
+   ловит битые пути, внешние запросы, дубли id и рассинхрон JS↔HTML.
+   ============================================================ */
+console.log('\n6. Целостность разметки и ресурсов');
+
+{
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const cssFiles = fs.readdirSync(path.join(ROOT, 'css')).filter(f => f.endsWith('.css'));
+  const allCss = cssFiles.map(f => fs.readFileSync(path.join(ROOT, 'css', f), 'utf8')).join('\n');
+  const jsAll = FILES.map(f => fs.readFileSync(path.join(ROOT, f), 'utf8')).join('\n');
+
+  // --- ни одного внешнего запроса: игра должна работать офлайн и с file:// ---
+  const externals = [...html.matchAll(/(?:href|src)="(https?:)?\/\/[^"]+"/g)].map(m => m[0]);
+  is('в index.html нет внешних ресурсов', externals.length === 0,
+    externals.slice(0, 3).join(', '));
+  const cssExternals = [...allCss.matchAll(/url\(\s*['"]?(?:https?:)?\/\//g)];
+  is('в CSS нет внешних url()', cssExternals.length === 0);
+
+  // --- все локальные ресурсы из HTML существуют ---
+  const refs = [...html.matchAll(/(?:href|src)="([^"]+)"/g)]
+    .map(m => m[1]).filter(u => !/^(data:|#|https?:|mailto:)/.test(u));
+  const missing = refs.filter(u => !fs.existsSync(path.join(ROOT, u.split('?')[0])));
+  is(`все ${refs.length} локальных ресурсов из index.html существуют`,
+    missing.length === 0, missing.join(', '));
+
+  // --- все url() из CSS указывают на реальные файлы (шрифты!) ---
+  const cssUrls = [...allCss.matchAll(/url\(\s*['"]?([^'")]+)['"]?\s*\)/g)]
+    .map(m => m[1]).filter(u => !/^(data:|https?:)/.test(u));
+  const cssMissing = cssUrls.filter(u => !fs.existsSync(path.join(ROOT, 'css', u)));
+  is(`все ${cssUrls.length} url() из CSS существуют`, cssMissing.length === 0, cssMissing.join(', '));
+
+  // --- шрифты действительно woff2 (магия первых байт), и непустые ---
+  const fontFiles = fs.readdirSync(path.join(ROOT, 'css', 'fonts')).filter(f => f.endsWith('.woff2'));
+  const badFonts = fontFiles.filter(f => {
+    const b = fs.readFileSync(path.join(ROOT, 'css', 'fonts', f));
+    return b.length < 2000 || b.slice(0, 4).toString('ascii') !== 'wOF2';
+  });
+  is(`${fontFiles.length} файлов .woff2 валидны`, badFonts.length === 0, badFonts.join(', '));
+  const fontBytes = fontFiles.reduce((a, f) => a + fs.statSync(path.join(ROOT, 'css', 'fonts', f)).size, 0);
+  is('шрифты весят меньше 250 КБ', fontBytes < 250000, Math.round(fontBytes / 1024) + ' КБ');
+
+  // --- все id, которые ищет JS через $('#...'), где-то объявлены:
+  //     либо в статической разметке, либо в шаблонах модалок ---
+  const htmlIds = new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]));
+  // id из шаблонных строк JS: id="..." или id=\'...\'
+  for (const m of jsAll.matchAll(/id=["']([A-Za-z0-9_-]+)["']/g)) htmlIds.add(m[1]);
+  const wanted = new Set([...jsAll.matchAll(/\$\('#([A-Za-z0-9_-]+)'\)/g)].map(m => m[1]));
+  const absent = [...wanted].filter(id => !htmlIds.has(id));
+  is(`все ${wanted.size} id, к которым обращается JS, объявлены`,
+    absent.length === 0, absent.slice(0, 5).join(', '));
+
+  // --- дубли id в разметке (ломают querySelector) ---
+  const allIds = [...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
+  const dupes = allIds.filter((id, i) => allIds.indexOf(id) !== i);
+  is('в разметке нет дублей id', dupes.length === 0, [...new Set(dupes)].join(', '));
+
+  // --- порядок подключения скриптов: core → systems → ui → main ---
+  // только реально подключённые скрипты (закомментированные не в счёт)
+  const activeHtml = html.replace(/<!--[\s\S]*?-->/g, '');
+  const order = [...activeHtml.matchAll(/<script src="(js\/[^"]+)"/g)].map(m => m[1]);
+  const idx = (re) => order.findIndex(f => re.test(f));
+  const core = idx(/^js\/core\//), sys = idx(/^js\/systems\//), ui = idx(/^js\/ui\//), main = idx(/js\/main\.js$/);
+  is('скрипты подключены в порядке core → systems → ui → main',
+    core === 0 && core < sys && sys < ui && ui < main, order.length + ' файлов');
+  const declared = order.slice().sort().join('|');
+  const onDisk = FILES.slice().sort().join('|');
+  is('список подключённых скриптов совпадает с проверяемым', declared === onDisk,
+    order.length + ' против ' + FILES.length);
+
+  // --- мобильная основа: viewport и safe-area ---
+  is('есть корректный meta viewport', /name="viewport"[^>]*width=device-width/.test(html));
+  is('учтён safe-area для iOS', allCss.includes('env(safe-area-inset-bottom)'));
+  is('есть медиазапрос для мобильных', /@media \(max-width:1120px\)/.test(allCss));
+  is('prefers-reduced-motion поддержан в CSS', allCss.includes('prefers-reduced-motion'));
+  is('prefers-reduced-motion поддержан в JS (угли)', jsAll.includes('prefers-reduced-motion'));
+}
+
+/* ============================================================
+   7. ОФЛАЙН-ЗАПУСК
+   Грузим index.html через HTTP с настоящей загрузкой ресурсов
+   (web-платформа jsdom) и убеждаемся, что наружу не уходит ни один
+   запрос, а игра стартует. Именно это гарантирует работу с file://.
+   ============================================================ */
+console.log('\n7. Офлайн-запуск');
+{
+  const http = require('http');
+  const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript',
+                 '.woff2': 'font/woff2', '.svg': 'image/svg+xml' };
+  const hits = [];
+  const srv = http.createServer((req, res) => {
+    hits.push(req.url);
+    const f = path.join(ROOT, decodeURIComponent(req.url.split('?')[0]));
+    if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); return res.end(); }
+    res.writeHead(200, { 'content-type': MIME[path.extname(f)] || 'application/octet-stream' });
+    fs.createReadStream(f).pipe(res);
+  });
+  await new Promise(r => srv.listen(0, '127.0.0.1', r));
+  const port = srv.address().port;
+  const jsErrors = [];
+  let w;
+  try {
+    const dom = await JSDOM.fromURL(`http://127.0.0.1:${port}/index.html`, {
+      runScripts: 'dangerously', resources: 'usable', pretendToBeVisual: true,
+      beforeParse(win) {
+        win.HTMLCanvasElement.prototype.getContext = () =>
+          new Proxy({}, { get: (t, k) => k === 'canvas' ? { width: 1, height: 1 } : () => {} });
+        win.HTMLElement.prototype.scrollIntoView = () => {};
+        win.addEventListener('error', (e) => jsErrors.push(e.message));
+      }
+    });
+    w = dom.window;
+    await new Promise(r => setTimeout(r, 1500));
+  } catch (e) {
+    no('офлайн-запуск', e.message);
+  }
+  srv.close();
+
+  if (w) {
+    is('игра стартует с настоящей загрузкой скриптов',
+      typeof w.CB === 'object' && w.CB && w.CB.S.stage >= 1, 'stage=' + (w.CB && w.CB.S.stage));
+    is('показан экран выбора класса', !!w.document.querySelector('#modal.open'));
+    is('ни одного JS-исключения при старте', jsErrors.length === 0, jsErrors.slice(0, 2).join('; '));
+    const external = hits.filter(u => /^https?:\/\/(?!127\.0\.0\.1)/.test(u));
+    is('нет запросов во внешнюю сеть', external.length === 0, external.join(', '));
+    const missing = hits.filter(u => !fs.existsSync(path.join(ROOT, u.split('?')[0])));
+    is('все запрошенные файлы отдались (нет 404)', missing.length === 0, missing.slice(0, 3).join(', '));
+    const cssOk = [...w.document.styleSheets].filter(s => { try { return s.cssRules.length > 0; } catch (e) { return false; } });
+    is('CSS подключился (таблицы стилей разобраны)', cssOk.length >= 8, cssOk.length + ' таблиц');
+  }
+}
+
 console.log(`\n${fail ? '✗ провалено: ' + fail : '✓ все тесты прошли'} (успешно ${pass})\n`);
-process.exit(fail ? 1 : 0);
+
+}   // main
+
+main().then(() => process.exit(fail ? 1 : 0)).catch(e => {
+  console.error('\n✗ тесты упали с исключением:', e && e.stack || e);
+  process.exit(1);
+});
