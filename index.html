@@ -135,6 +135,7 @@
         <button data-v="pets">Свита</button>
         <button data-v="gear">Сумка</button>
         <button data-v="deeds">Дела</button>
+        <button data-v="town">Города</button>
         <button data-v="dark">Тьма</button>
       </div>
       <div class="view on" data-view="shop">
@@ -175,6 +176,9 @@
       <div class="view" data-view="deeds">
         <div id="deedsBody"></div>
       </div>
+      <div class="view" data-view="town">
+        <div id="townBody"></div>
+      </div>
       <div class="view" data-view="dark">
         <div class="prest-card" id="prestCard"></div>
         <div class="sub">Древо Вечной Тьмы</div>
@@ -199,6 +203,7 @@
   <button data-panel="right" data-v="pets">Свита</button>
   <button data-panel="right" data-v="gear">Сумка</button>
   <button data-panel="right" data-v="deeds">Дела</button>
+  <button data-panel="right" data-v="town">Города</button>
   <button data-panel="right" data-v="dark">Тьма</button>
   <button data-panel="left" data-v="codex">Кодекс</button>
 </nav>
@@ -221,9 +226,7 @@
 <script src="js/systems/craft.js"></script>
 <script src="js/systems/map.js"></script>
 <script src="js/systems/city.js"></script>
-<!-- clans.js — пустая заготовка под будущую соцсистему, намеренно не подключена:
-     не тянем лишний запрос. Раскомментируйте вместе с реализацией. -->
-<!-- <script src="js/systems/clans.js"></script> -->
+<script src="js/systems/clans.js"></script>
 <script src="js/systems/hidden.js"></script>
 
 <script src="js/ui/render.js"></script>

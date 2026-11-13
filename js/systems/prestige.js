@@ -201,6 +201,7 @@ function applyPrestige(gain,before){
     equip:{weapon:null,armor:null,amulet:null,ring1:null,ring2:null,relic:S.equip.relic}
   };
   S=Object.assign(DEF(),keep);
+  if (!S.city) S.city=cityDef();
   const B=bonuses();
   S.stage=Math.max(1,B.startStage||1);
   S.runMax=S.stage;                      /* новый забег начинается заново */

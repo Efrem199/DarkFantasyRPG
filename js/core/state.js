@@ -46,8 +46,12 @@ const DEF = () => ({
   mode:'deeper', rift:null, riftAt:0,
   /* лавка */
   autoOn:false, autoBuy:{}, shopOrder:['blade','servant','crit','greed','power','void'],
-  hints:[], goals:[]
+  hints:[], goals:[],
+  /* города и кланы */
+  city:null
 });
+/* S.city заполняется в main.js: cityDef() ссылается на CLANS из clans.js,
+   а тот грузится позже — на верхнем уровне это была бы TDZ-ошибка. */
 let S = DEF();
 
 /* Рантайм боя (не сохраняется) */
@@ -161,6 +165,31 @@ function migrate(data){
   for (const k in out.pets) out.pets[k]=intIn(out.pets[k],0,0,999);
   out.autoBuy=data.autoBuy||{};
   for (const k in out.autoBuy) out.autoBuy[k]=!!out.autoBuy[k];
+  /* --- города и кланы: только известные кланы, репутация в 0..300 --- */
+  out.city = out.city || cityDef();
+  const dcity=data.city&&typeof data.city==='object'?data.city:{};
+  if (dcity.rep&&typeof dcity.rep==='object'){
+    for (const id in out.city.rep){
+      out.city.rep[id]=intIn(dcity.rep[id],0,0,300);
+    }
+  }
+  out.city.visited=(Array.isArray(dcity.visited)?dcity.visited:[]).filter(id=>CITY(id));
+  out.city.trades=intIn(dcity.trades,0,0);
+  out.city.caravans=intIn(dcity.caravans,0,0);
+  out.city.honors=dcity.honors&&typeof dcity.honors==='object'?dcity.honors:{};
+  const svc=dcity.services&&typeof dcity.services==='object'?dcity.services:{};
+  for (const id in out.city.rep){
+    const t=num(svc[id],0,0);
+    if (t>0&&t<=now()) out.city.services[id]=t;
+  }
+  const cv=dcity.caravan;
+  out.city.caravan=(cv&&CITY(cv.to)&&num(cv.end,0,0)>0)
+    ? { from:CITY(cv.from)?cv.from:'vermine', to:cv.to, end:num(cv.end,0,0) } : null;
+  const war=dcity.war;
+  out.city.war=(war&&CLANS[war.a]&&CLANS[war.b]&&war.a!==war.b)
+    ? { key:String(war.key||''), a:war.a, b:war.b,
+        side:(war.side==='a'||war.side==='b')?war.side:null,
+        since:num(war.since,0,0), won:!!war.won, aid:intIn(war.aid,0,0,999) } : null;
   ['active','inv','ach','goals','hints','codexFam','codexBoss','lore','relics','hidden','sacrificed','exped']
     .forEach(k=>{ if(!Array.isArray(out[k])) out[k]=[]; });
   if (typeof out.stance!=='number'||out.stance<0||out.stance>2) out.stance=0;

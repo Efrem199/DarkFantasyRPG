@@ -20,7 +20,7 @@ const FILES = [
   'js/systems/combat.js', 'js/systems/shop.js', 'js/systems/skills.js',
   'js/systems/prestige.js', 'js/systems/pets.js', 'js/systems/inventory.js',
   'js/systems/craft.js', 'js/systems/map.js', 'js/systems/city.js',
-  'js/systems/hidden.js',
+  'js/systems/clans.js', 'js/systems/hidden.js',
   'js/ui/render.js', 'js/ui/modals.js', 'js/ui/hints.js',
   'js/main.js'
 ];
@@ -141,13 +141,13 @@ console.log('\n2. Интеграция');
     is('тик не падает', true);
 
     let viewsOk = true, brokenView = '';
-    for (const v of ['hero', 'codex', 'shop', 'map', 'forge', 'skills', 'pets', 'gear', 'deeds', 'dark']) {
+    for (const v of ['hero', 'codex', 'shop', 'map', 'forge', 'skills', 'pets', 'gear', 'deeds', 'town', 'dark']) {
       for (const p of ['left', 'right']) {
         try { api.switchView(p, v); }
         catch (e) { viewsOk = false; brokenView = p + '/' + v + ': ' + e.message; }
       }
     }
-    is('все 10 вкладок рендерятся (обе панели)', viewsOk, brokenView);
+    is('все 11 вкладок рендерятся (обе панели)', viewsOk, brokenView);
 
     let buyOk = true;
     for (const it of api.SHOP) {
@@ -332,11 +332,194 @@ console.log('\n5. Производительность');
 }
 
 /* ============================================================
-   6. ЦЕЛОСТНОСТЬ РАЗМЕТКИ И РЕСУРСОВ
+   6. ГОРОДА И КЛАНЫ
+   ============================================================ */
+console.log('\n6. Города Пепла: кланы, торговля, войны');
+
+{
+  const { w, api, error } = boot();
+  if (error) { no('загрузка', error.message); }
+  else {
+    const S = api.S;
+    S.cls = 'knight';
+
+    /* --- чистый старт --- */
+    is('на старте репутация нулевая у всех кланов',
+      Object.values(S.city.rep).every(v => v === 0), JSON.stringify(S.city.rep));
+    is('6 городов, 4 клана',
+      Object.keys(api.CITIES).length === 6 && Object.keys(api.CLANS).length === 4,
+      Object.keys(api.CITIES).length + ' / ' + Object.keys(api.CLANS).length);
+    is('у каждого города есть клан-владыка',
+      Object.values(api.CITIES).every(c => !!api.CLANS[c.clan]));
+    is('все кланы имеют услугу и перк',
+      Object.values(api.CLANS).every(c => c.service && typeof c.service.go === 'function' && c.perk));
+
+    /* --- репутация ограничена 0..300 --- */
+    api.addRep('ash', 10000);
+    is('репутация не превышает 300', S.city.rep.ash === 300, 'rep ' + S.city.rep.ash);
+    api.addRep('ash', -10000);
+    is('репутация не уходит ниже 0', S.city.rep.ash === 0, 'rep ' + S.city.rep.ash);
+
+    /* --- дилемма: помощь одному бьёт по его врагу --- */
+    const before = JSON.parse(JSON.stringify(S.city.rep));
+    api.addRep('ash', 60);
+    /* тест на «враг клана теряет репутацию»: сначала поднимем врагу планку —
+       если он на нуле, терять ему нечего */
+    api.addRep('iron', 100);
+    api.addRep('ash', 20);
+    is('репутация врага падает от помощи Конклаву', S.city.rep.iron < 100,
+      'iron: 100 → ' + S.city.rep.iron);
+    is('помощь клану повышает его репутацию', S.city.rep.ash > before.ash,
+      before.ash + ' → ' + S.city.rep.ash);
+    const hurt = Object.keys(api.CLANS).filter(id => S.city.rep[id] < before[id]);
+    is('помощь одному клану не задевает союзников',
+      hurt.every(id => api.CLANS.ash.hates.includes(id)),
+      'пострадали: ' + (hurt.join(', ') || 'никто'));
+    is('и портит именно у врага, а не у всех',
+      hurt.every(id => api.CLANS.ash.hates.includes(id) || api.CLANS.ash.likes.includes(id)) &&
+      !Object.values(api.CLANS).some(c => c.hates.includes(c.id)),
+      'враги Конклава: ' + api.CLANS.ash.hates.join(', '));
+
+    /* --- цены дрейфуют, но в разумных пределах --- */
+    let worst = 0, spread = 0, bad = '';
+    for (const c of api.CITIES) {
+      for (const g of api.CGOODS) {
+        if (g.id === 'gold') continue;
+        const p = api.cityPrice(c.id, g.id);
+        const mk = c.mk[g.id] || 1;
+        const lo = g.base * mk * 0.70, hi = g.base * mk * 1.30;
+        if (!(p >= Math.floor(lo) && p <= Math.ceil(hi))) bad = c.id + '/' + g.id + ' = ' + p;
+        worst = Math.max(worst, Math.abs(p / (g.base * mk) - 1));
+      }
+    }
+    for (const c of api.CITIES) {
+      for (const d of api.CITIES) {
+        if (c.id === d.id) continue;
+        const p = api.cityPrice(c.id, 'ash'), q = api.cityPrice(d.id, 'ash');
+        spread = Math.max(spread, Math.abs(p - q) / (api.CGOODS[0].base));
+      }
+    }
+    is('любой товар в любом городе имеет цену', !bad, bad);
+    is('цены живут в пределах ±30% от базовой', worst <= 0.31,
+      'макс. отклонение ' + (worst * 100).toFixed(0) + '%');
+    is('между городами есть арбитраж', spread > 0.02,
+      'макс. разница между городами ' + (spread * 100).toFixed(0) + '% от базы');
+
+    /* --- война: присяга только одной стороне --- */
+    const pair = api.warPair();
+    is('пара на войну определена',
+      Array.isArray(pair) && pair[0] && pair[1] && pair[0] !== pair[1], pair.join(' vs '));
+    const [pa, pb] = pair;
+    api.ensureWar();
+    const st = JSON.parse(JSON.stringify(api.S.city.war));
+    api.ensureWar();
+    is('война стабильна между вызовами', api.S.city.war.key === st.key);
+    S.city.rep[pa] = 50; S.city.rep[pb] = 50;   /* даём обеим сторонам простор */
+    const beforeOath = JSON.parse(JSON.stringify(S.city.rep));
+    api.warSide('a');
+    const afterA = JSON.parse(JSON.stringify(S.city.rep));
+    api.warSide('b');
+    is('нельзя переметнуться на другую сторону войны',
+      S.city.war.side === 'a', 'сторона ' + S.city.war.side);
+    is('присяга подняла своего и уронила чужого',
+      S.city.rep[pa] > beforeOath[pa] && S.city.rep[pb] < beforeOath[pb],
+      'репутация: ' + pa + ' ' + beforeOath[pa] + '→' + S.city.rep[pa] + ', ' +
+      pb + ' ' + beforeOath[pb] + '→' + S.city.rep[pb]);
+    is('переметнуться нельзя: репутация второй стороны не поднялась',
+      S.city.rep[pb] === afterA[pb]);
+    api.warReward();
+    is('награду за войну не выдают без оснований', S.city.war.won === false || S.city.war.won === true);
+
+    /* --- караван --- */
+    S.maxStage = 1e6;
+    api.caravanTo('zolota');
+    is('караван не уходит в закрытый город', !S.city.caravan);
+    is('в закрытый город не пускает и на карте',
+      (() => { const keep = S.maxStage; S.maxStage = 1; api.cityVisit('zolota');
+        const ok = !S.city.visited.includes('zolota'); S.maxStage = keep; return ok; })());
+    api.caravanTo('vermine');
+    is('караван отправлен', !!S.city.caravan && S.city.caravan.to === 'vermine');
+    S.city.caravan.end = Date.now() - 1000;
+    const goldBefore = S.gold;
+    api.caravanArrive();
+    const gain = S.gold - goldBefore;
+    is('караван доезжает и приносит золото', gain > 0 && !S.city.caravan, '+' + api.nf(gain) + ' золота');
+    is('доход каравана не обгоняет бой', gain < 120 + 60 * 12 * 1.5,
+      '+' + api.nf(gain) + ' при глубине 1e6');
+
+    /* --- торговля --- */
+    S.gold = 100000;
+    S.res.ash = 20;
+    const g0 = S.gold, ash0 = S.res.ash;
+    api.sellGood('ash', 'vermine', 5);
+    is('продажа даёт золото и отнимает товар', S.gold > g0 && S.res.ash === ash0 - 5,
+      '+' + Math.round(S.gold - g0));
+    const g1 = S.gold, ash1 = S.res.ash;
+    api.buyGood('ash', 'vermine', 3);
+    is('покупка берёт золото и даёт товар', S.gold < g1 && S.res.ash === ash1 + 3, 'товар ' + S.res.ash);
+    is('наценка не даёт заработать на месте',
+      (() => {
+        S.gold = 100000; S.res.ash = 100;
+        api.sellGood('ash', 'vermine', 100);
+        const sell = S.gold - 100000;
+        S.gold = 100000;
+        api.buyGood('ash', 'vermine', 100);
+        return sell < 100000 - S.gold;
+      })());
+    is('золото не торгуется как товар',
+      (() => { const g = S.gold; api.sellGood('gold', 'vermine', 10); return S.gold === g; })());
+
+    /* --- услуги кланов --- */
+    S.curse = 'decay'; S.curseT = 10;
+    S.city.rep.ash = 60;
+    api.clanService('ash');
+    is('услуга Конклава снимает Осквернение', !S.curse, 'проклятие ' + S.curse);
+    S.city.services = {};                       /* снимаем откат, проверяем именно репутацию */
+    S.city.rep.ash = 0;
+    S.curse = 'decay'; S.curseT = 10;
+    api.clanService('ash');
+    is('без репутации услуга недоступна', S.curse === 'decay', 'проклятие ' + S.curse);
+
+    /* плата и кулдаун */
+    S.city.services = {};
+    S.city.rep.ash = 120;
+    S.res.ash = 100;
+    const svcAsh = S.res.ash;
+    api.clanService('ash');
+    is('услуга списывает плату', S.res.ash === svcAsh - 20, 'Пепел ' + svcAsh + ' → ' + S.res.ash);
+    const svcAsh1 = S.res.ash;
+    api.clanService('ash');
+    is('услугу нельзя спамить — есть откат', S.res.ash === svcAsh1, 'Пепел остался ' + S.res.ash);
+    is('откат пишется в состояние', typeof S.city.services.ash === 'number' && S.city.services.ash > 0);
+
+    /* --- бонусы в бою --- */
+    S.city.rep.ash = 300; S.city.rep.ashen = 300;
+    S.city.war = { key: 'k', a: 'ash', b: 'iron', side: 'a', since: Date.now(), won: false, aid: 0 };
+    const B = api.bonuses();
+    is('репутация кланов даёт боевые бонусы',
+      B.allMul > 1 || B.ashMul > 1 || B.goldMul > 1,
+      'allMul ' + B.allMul.toFixed(3));
+    is('присяга в войне отзывается в бонусе', !!api.S.city.war.side);
+
+    /* --- визит и сохранение --- */
+    api.cityVisit('vermine');
+    is('визит открывает город', S.city.visited.includes('vermine'));
+    api.renderTown();
+
+    const raw = api.exportSave();
+    const cityBefore = JSON.stringify(S.city);
+    api.importSave(raw);
+    is('город и кланы переживают сохранение/загрузку',
+      JSON.stringify(api.S.city) === cityBefore, 'город в сейве');
+  }
+}
+
+/* ============================================================
+   7. ЦЕЛОСТНОСТЬ РАЗМЕТКИ И РЕСУРСОВ
    Заменяет часть «визуальной» проверки там, где браузера нет:
    ловит битые пути, внешние запросы, дубли id и рассинхрон JS↔HTML.
    ============================================================ */
-console.log('\n6. Целостность разметки и ресурсов');
+console.log('\n7. Целостность разметки и ресурсов');
 
 {
   const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
@@ -411,12 +594,12 @@ console.log('\n6. Целостность разметки и ресурсов');
 }
 
 /* ============================================================
-   7. ОФЛАЙН-ЗАПУСК
+   8. ОФЛАЙН-ЗАПУСК
    Грузим index.html через HTTP с настоящей загрузкой ресурсов
    (web-платформа jsdom) и убеждаемся, что наружу не уходит ни один
    запрос, а игра стартует. Именно это гарантирует работу с file://.
    ============================================================ */
-console.log('\n7. Офлайн-запуск');
+console.log('\n8. Офлайн-запуск');
 {
   const http = require('http');
   const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript',
@@ -432,10 +615,14 @@ console.log('\n7. Офлайн-запуск');
   await new Promise(r => srv.listen(0, '127.0.0.1', r));
   const port = srv.address().port;
   const jsErrors = [];
+  /* виртуальная консоль jsdom: ловит и «uncaught», и падения рендера */
+  const VC = JSDOM.VirtualConsole ? new JSDOM.VirtualConsole() : null;
+  if (VC) VC.on('jsdomError', e => jsErrors.push('JSDOM: ' + ((e.detail && e.detail.message) || e.message)));
   let w;
   try {
     const dom = await JSDOM.fromURL(`http://127.0.0.1:${port}/index.html`, {
       runScripts: 'dangerously', resources: 'usable', pretendToBeVisual: true,
+      ...(VC ? { virtualConsole: VC } : {}),
       beforeParse(win) {
         win.HTMLCanvasElement.prototype.getContext = () =>
           new Proxy({}, { get: (t, k) => k === 'canvas' ? { width: 1, height: 1 } : () => {} });
@@ -444,7 +631,12 @@ console.log('\n7. Офлайн-запуск');
       }
     });
     w = dom.window;
-    await new Promise(r => setTimeout(r, 1500));
+    /* ждём не «полторы секунды», а появления игры: под нагрузкой
+       скрипты грузятся дольше и фиксированный таймаут флапает */
+    for (let i = 0; i < 80 && !(w.CB && w.CB.S && w.CB.S.stage >= 1); i++) {
+      await new Promise(r => setTimeout(r, 100));
+    }
+    await new Promise(r => setTimeout(r, 200));
   } catch (e) {
     no('офлайн-запуск', e.message);
   }

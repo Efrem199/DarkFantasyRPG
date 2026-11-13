@@ -119,6 +119,8 @@ function bonuses(){
   B.allMul *= 1 + bookBonus();
   B.allMul *= 1 + 0.08*S.sacrificed.length;
   B.allMul *= 1 + 0.03*S.ritualEdge;
+  /* города и кланы: репутация, присяга в войне */
+  if (S.city) clanBonuses(B);
   const tn = TRUE_NAMES.find(t=>t.id===S.trueName);
   if (tn) tn.apply(B);
   /* Правило зоны */
@@ -607,6 +609,7 @@ function gameTick(){
   voiceT-=dt;
   if (voiceT<=0){ voiceT=200+Math.random()*280; if (Math.random()<0.55) voiceOfAbyss(); }
   checkExpeditions();
+  if (S.city) cityTick();
   /* Автопокупка — раз в секунду, одно улучшение */
   autoTimerShop+=dt;
   if (S.autoOn && autoTimerShop>1){ autoTimerShop=0; autoBuyTick(); }

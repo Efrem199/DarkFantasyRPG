@@ -97,6 +97,29 @@ $('.view[data-view="forge"]').addEventListener('click',e=>{
   else if (cu) curseItem(cu.dataset.curse);
   else if (fz) doFuse();
 });
+$('.view[data-view="town"]').addEventListener('click',e=>{
+  const city=e.target.closest('[data-city]'),
+        tr=e.target.closest('[data-trade]'),
+        sv=e.target.closest('[data-service]'),
+        cv=e.target.closest('[data-caravan]'),
+        side=e.target.closest('[data-side]'),
+        war=e.target.closest('[data-war]');
+  if (city) cityVisit(city.dataset.city);
+  else if (tr) {
+    const good=tr.dataset.good, cid=LAYOUT.townSel;
+    if (tr.dataset.trade==='sell'){
+      if (good==='gold') return;
+      sellGood(good, cid, S.res[good]||0);
+    } else buyGood(good, cid, 1);
+  }
+  else if (sv) clanService(sv.dataset.service);
+  else if (cv) caravanTo(cv.dataset.caravan);
+  else if (side) warSide(side.dataset.side);
+  else if (war){
+    if (war.dataset.war==='help') warHelp();
+    else if (war.dataset.war==='claim') warReward();
+  }
+});
 $('.view[data-view="deeds"]').addEventListener('click',e=>{
   const w=e.target.closest('#wellBtn'), ex=e.target.closest('[data-exp]'), r=e.target.closest('[data-ritual]');
   if (w) drawWell();
@@ -132,6 +155,7 @@ function switchView(panel,v){
   if (v==='pets') renderPets();
   if (v==='forge') renderForge();
   if (v==='deeds') renderDeeds();
+  if (v==='town') renderTown();
   if (v==='map') renderMap();
   if (v==='codex') renderCodex();
   if (v==='shop') renderShop();
@@ -140,7 +164,7 @@ $('#tabsLeft').addEventListener('click',e=>{const b=e.target.closest('button'); 
 $('#tabsRight').addEventListener('click',e=>{const b=e.target.closest('button'); if(b) switchView('right',b.dataset.v);});
 $('#tabbar').addEventListener('click',e=>{const b=e.target.closest('button'); if(b) switchView(b.dataset.panel,b.dataset.v);});
 $$('#tabbar button').forEach(b=>{
-  const m={hero:'skull',shop:'gem',map:'map',forge:'anvil',skills:'tree',pets:'paw',gear:'bag',deeds:'compass',dark:'shard',codex:'book'};
+  const m={hero:'skull',shop:'gem',map:'map',forge:'anvil',skills:'tree',pets:'paw',gear:'bag',deeds:'compass',town:'crown',dark:'shard',codex:'book'};
   b.innerHTML=IC[m[b.dataset.v]]+b.textContent;
 });
 
@@ -168,6 +192,7 @@ addEventListener('keydown',e=>{
   else if (k==='b') switchView('right','shop');
   else if (k==='g') switchView('right','forge');
   else if (k==='d') switchView('right','deeds');
+  else if (k==='v') switchView('right','town');
   else if (k==='p') switchView('right','dark');
   else if (k==='f') switchView('right','pets');
   else if (k==='c') switchView('left','codex');
@@ -190,6 +215,8 @@ ensureContracts();
 lastZone=zoneIndex(S.stage);
 
 spawnMob();
+/* Города и кланы: состояние есть всегда, даже без сейва */
+if (!S.city) S.city = cityDef();
 renderAll();
 checkHidden();
 
@@ -219,6 +246,10 @@ window.CB = {
   // ядро
   DEF, migrate, save, load, exportSave, importSave, applyOffline,
   switchView, renderAll, openModal, closeModal, resourceModal,
+  /* города и кланы */
+  CLANS, CITIES, CITY, CGOODS, renderTown, cityVisit, sellGood, buyGood, clanService,
+  caravanTo, caravanArrive, warSide, warHelp, warReward, ensureWar, warPair,
+  cityPrice, clanRep, repTier, addRep, clanBonuses, cityTick, LAYOUT, cityDef,
   num, validItem,
   // бой и формулы
   bonuses, stats, comboMul, depthCurve, xpNeed, hpFor, goldFor, xpFor,
