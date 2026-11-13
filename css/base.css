@@ -4,6 +4,8 @@
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
 html,body{height:100%}
 body{margin:0; overflow:hidden; color:var(--txt);
+  /* Засечки в заголовках идут через 'Cinzel'; если он не загрузился —
+     Georgia остаётся в том же настроении, а не превращается в Arial. */
   font-family:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif;
   background:
     radial-gradient(1200px 700px at 50% -10%, #17102b 0%, transparent 60%),
@@ -22,3 +24,24 @@ textarea{font-family:inherit}
   background:radial-gradient(120% 95% at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%)}
 .grain{position:fixed; inset:0; z-index:2; pointer-events:none; opacity:.05; mix-blend-mode:overlay;
   background:repeating-linear-gradient(0deg,#fff 0 1px, transparent 1px 3px)}
+
+/* ---------------- Доступность ---------------- */
+/* Клавиатурная навигация: видимый фокус только там, где он нужен.
+   :focus-visible не мешает мыши, но спасает при Tab. */
+:where(button, a, [tabindex], textarea, input, select):focus-visible{
+  outline:2px solid var(--gold);
+  outline-offset:2px;
+  border-radius:6px;
+}
+/* Игроков, у которых в системе включено «уменьшить движение»,
+   не должно трясти, качать и осыпать углями. */
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+    scroll-behavior:auto !important;
+  }
+  #embers{ display:none }
+  .fog, .grain{ display:none }
+}

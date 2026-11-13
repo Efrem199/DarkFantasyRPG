@@ -6,7 +6,7 @@ header{flex:none; display:flex; align-items:center; gap:10px; padding:8px 12px;
   border-bottom:1px solid var(--line); backdrop-filter:blur(10px);
   background:linear-gradient(180deg, rgba(13,10,22,.9), rgba(9,7,15,.75))}
 .brand{display:flex; flex-direction:column; line-height:1; user-select:none}
-.brand b{font-family:'Cinzel',serif; font-weight:900; font-size:18px; letter-spacing:3px;
+.brand b{font-family:'Cinzel',Georgia,'Times New Roman',serif; font-weight:900; font-size:18px; letter-spacing:3px;
   background:linear-gradient(180deg,#f3e3d0 10%, var(--blood) 60%, var(--blood2));
   -webkit-background-clip:text; background-clip:text; color:transparent;
   filter:drop-shadow(0 0 14px rgba(229,72,77,.35))}

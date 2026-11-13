@@ -259,3 +259,5 @@ function nightmare(){
   addLore(n.p);
   renderResBar(); renderBuffs();
 }
+
+//# sourceURL=js/systems/hidden.js

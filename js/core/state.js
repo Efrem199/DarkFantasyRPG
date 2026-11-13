@@ -5,7 +5,7 @@
 
 const SAVE_KEY='cursebound_save_v5';
 const OLD_KEYS=['cursebound_save_v4','cursebound_save_v3','cursebound_save_v2','cursebound_save_v1'];
-const SAVE_VER=5, BOSS_TIME=30, INV_MAX=40, PREST_REQ=45, PREST_COOLDOWN=600000; /* 10 минут */
+const SAVE_VER=5, BOSS_TIME=40, INV_MAX=40, PREST_REQ=45, PREST_COOLDOWN=600000; /* 10 минут */
 
 const RES = {
   blood:{n:'Кровь Владык', ic:'drop', cls:'r-blood',
@@ -29,8 +29,8 @@ const RES = {
 const DEF = () => ({
   v:SAVE_VER, cls:null, sub:null, heroName:'Безымянный странник',
   gold:0,totalGold:0, lvl:1,xp:0, stage:1,maxStage:1,runMax:1,
-  kills:0,bosses:0,elites:0,clicks:0,crits:0,marks:0,totalDmg:0,purchases:0,playtime:0,skillUses:0,
-  u:{blade:0,servant:0,crit:0,greed:0,power:0,void:0},
+  kills:0,bosses:0,bossTries:0,elites:0,clicks:0,crits:0,marks:0,totalDmg:0,purchases:0,playtime:0,skillUses:0,
+  u:{blade:0,servant:0,crit:0,greed:0,power:0,void:0,awaken:0,echo:0,crown:0},
   ach:[], muted:false, lastSeen:now(),
   prestige:0, shards:0, totalShards:0, prestAt:0,
   res:{blood:0,ash:0,whisper:0,truth:0}, seen:{},
@@ -80,16 +80,87 @@ function save(silent){
   try{ localStorage.setItem(SAVE_KEY,JSON.stringify(S)); }catch(e){}
   if (silent){ const d=$('#saveDot'); d.classList.add('on'); setTimeout(()=>d.classList.remove('on'),900); }
 }
+/* ---------------- Санитария сохранения ----------------
+   Сейв — это ввод извне (localStorage мог быть испорчен, а импорт вставлен
+   руками). Ни одно поле не должно ронять игру: мусор молча заменяем на
+   безопасное значение, а не падаем в renderGear() на битом предмете. */
+function num(v,dflt,min,max){
+  const n=typeof v==='number'?v:parseFloat(v);
+  if(!isFinite(n)) return dflt;
+  let r=n;
+  if (typeof min==='number') r=Math.max(min,r);
+  if (typeof max==='number') r=Math.min(max,r);
+  return r;
+}
+const intIn=(v,dflt,min,max)=>Math.floor(num(v,dflt,min,max));
+/* Предмет считается валидным, только если у него живы тип, редкость и статы —
+   ровно те поля, к которым обращается рендер (RAR[it.rar].c, STAT_DEF[k].n). */
+function validItem(it){
+  if (!it||typeof it!=='object') return false;
+  if (!ITYPE[it.slot]) return false;
+  if (!RAR[it.rar]) return false;
+  if (!it.st||typeof it.st!=='object') return false;
+  for (const k in it.st){
+    if (!STAT_DEF[k]) return false;
+    const v=it.st[k];
+    if (typeof v!=='number'||!isFinite(v)||v<0) return false;
+  }
+  if (!it.st || Object.keys(it.st).length===0) return false;
+  it.n=typeof it.n==='string'&&it.n?it.n.slice(0,80):'Безымянная вещь';
+  it.id=intIn(it.id,0,0);
+  it.lv=intIn(it.lv,1,1);
+  return true;
+}
+const MAX_STAGE_CAP=100000;   /* защита от stage: 1e9 в подделанном сейве */
+
 function migrate(data){
+  if (!data||typeof data!=='object'||Array.isArray(data)) data={};
   const fresh=DEF();
+  /* ВАЖНО: Object.assign(fresh,data) подменяет вложенные объекты ссылками
+     из сейва. Поэтому дефолты вложенных структур надо снимать ДО этого —
+     иначе новые поля (например, awaken/echo/crown в S.u) у старых сейвов
+     не появятся и дадут NaN в формулах. */
+  const defaults={
+    u:Object.assign({},fresh.u),
+    equip:Object.assign({},fresh.equip),
+    buffs:Object.assign({},fresh.buffs),
+    res:Object.assign({},fresh.res)
+  };
   const out=Object.assign(fresh,data);
-  out.u=Object.assign(fresh.u,data.u||{});
-  out.equip=Object.assign({weapon:null,armor:null,amulet:null,ring1:null,ring2:null,relic:null},data.equip||{});
-  out.buffs=Object.assign({dmg:0,gold:0,haste:0,click:0,dps:0,all:0},data.buffs||{});
-  out.res=Object.assign({blood:0,ash:0,whisper:0,truth:0},data.res||{});
+  out.u=Object.assign(defaults.u, data.u||{});
+  for (const k in out.u) out.u[k]=intIn(out.u[k],0,0,1e7);
+  /* любое улучшение лавки обязано существовать числом */
+  for (const k in defaults.u) if (typeof out.u[k]!=='number') out.u[k]=defaults.u[k];
+  /* --- числа: всё, что дальше участвует в формулах --- */
+  out.maxStage=intIn(out.maxStage,1,1,MAX_STAGE_CAP);
+  out.stage=intIn(out.stage,1,1,Math.max(1,out.maxStage));
+  out.runMax=intIn(out.runMax,out.stage,1,out.maxStage);
+  out.lvl=intIn(out.lvl,1,1,10000);
+  out.xp=num(out.xp,0,0);
+  out.gold=num(out.gold,0,0);
+  out.totalGold=num(out.totalGold,0,0);
+  ['kills','bosses','bossTries','elites','clicks','crits','marks','purchases','skillUses','playtime','totalDmg',
+   'prestige','shards','totalShards','prestAt','wellAt','markAt','riftAt','itemSeq','ritualEdge','sp']
+    .forEach(k=>{ out[k]=num(out[k],fresh[k]===undefined?0:fresh[k],0); });
+  /* класс и подкласс — только известные id, иначе пустой бонус и битый рендер */
+  if (out.cls&&!CLASSES[out.cls]) out.cls=null;
+  if (out.sub&&(!SUBS[out.sub]||SUBS[out.sub].cls!==out.cls)) out.sub=null;
+  if (typeof out.heroName!=='string'||!out.heroName) out.heroName=fresh.heroName;
+  out.heroName=out.heroName.slice(0,40);
+  out.muted=!!out.muted;
+  if (typeof out.trueName==='string'&&out.trueName&&!TRUE_NAMES.some(t=>t.id===out.trueName)) out.trueName=null;
+  out.equip=Object.assign(defaults.equip,data.equip||{});
+  out.buffs=Object.assign(defaults.buffs,data.buffs||{});
+  for (const k in out.buffs) out.buffs[k]=num(out.buffs[k],0,0);
+  out.res=Object.assign(defaults.res,data.res||{});
+  for (const k in out.res) out.res[k]=num(out.res[k],0,0);
   out.seen=data.seen||{};
   out.ptree=data.ptree||{}; out.pets=data.pets||{}; out.skills=data.skills||{};
+  for (const k in out.ptree) out.ptree[k]=intIn(out.ptree[k],0,0,999);
+  for (const k in out.skills) out.skills[k]=intIn(out.skills[k],0,0,999);
+  for (const k in out.pets) out.pets[k]=intIn(out.pets[k],0,0,999);
   out.autoBuy=data.autoBuy||{};
+  for (const k in out.autoBuy) out.autoBuy[k]=!!out.autoBuy[k];
   ['active','inv','ach','goals','hints','codexFam','codexBoss','lore','relics','hidden','sacrificed','exped']
     .forEach(k=>{ if(!Array.isArray(out[k])) out[k]=[]; });
   if (typeof out.stance!=='number'||out.stance<0||out.stance>2) out.stance=0;
@@ -109,12 +180,12 @@ function migrate(data){
     out.runMax=out.maxStage||1;   /* старый забег засчитываем целиком */
     out.prestAt=0; out.mode='deeper'; out.rift=null; out.riftAt=0;
     out.autoOn=false; out.autoBuy={};
-    out.shopOrder=['blade','servant','crit','greed','power','void'];
+    out.shopOrder=['blade','servant','crit','greed','power','void','awaken','echo','crown'];
   }
   if (typeof out.runMax!=='number'||out.runMax<1) out.runMax=Math.max(1,out.stage||1);
   if (out.mode!=='farm'&&out.mode!=='deeper') out.mode='deeper';
   /* порядок лавки: только известные id, недостающие в конец */
-  const ids=['blade','servant','crit','greed','power','void'];
+  const ids=['blade','servant','crit','greed','power','void','awaken','echo','crown'];
   out.shopOrder=(Array.isArray(out.shopOrder)?out.shopOrder:[]).filter(x=>ids.includes(x));
   ids.forEach(x=>{ if(!out.shopOrder.includes(x)) out.shopOrder.push(x); });
   out.active=out.active.filter(id=>PET(id)&&(out.pets[id]||0)>0);
@@ -122,8 +193,14 @@ function migrate(data){
   out.relics=out.relics.filter(id=>TR(id));
   out.hidden=out.hidden.filter(id=>HIDDEN_ZONES.some(z=>z.id===id));
   /* предметы проверяем по типу (weapon/armor/amulet/ring/relic) */
-  out.inv=out.inv.filter(i=>i&&ITYPE[i.slot]);
-  for (const k in out.equip){ if (out.equip[k]&&!ITYPE[out.equip[k].slot]) out.equip[k]=null; }
+  out.inv=out.inv.filter(validItem).slice(0,INV_MAX);
+  /* экипировка проверяется строже: слот должен совпадать с ячейкой */
+  for (const k in out.equip){
+    const it=out.equip[k];
+    if (!it) { out.equip[k]=null; continue; }
+    const slotOk = k==='ring1'||k==='ring2' ? it.slot==='ring' : it.slot===k;
+    if (!validItem(it)||!slotOk) out.equip[k]=null;
+  }
   out.v=SAVE_VER;
   return out;
 }
@@ -173,3 +250,5 @@ function grantOffline(secs){
   log('Время сжалось: +'+nf(gold)+' золота и '+nf(xp)+' опыта.','gold');
   renderGold();
 }
+
+//# sourceURL=js/core/state.js

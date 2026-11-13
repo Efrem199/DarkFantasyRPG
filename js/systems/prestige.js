@@ -234,3 +234,5 @@ function applyPrestige(gain,before){
     if (needSub) setTimeout(subModal,400);
   };
 }
+
+//# sourceURL=js/systems/prestige.js

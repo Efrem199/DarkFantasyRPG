@@ -14,7 +14,7 @@
 .ring .lvl b{font-size:22px; font-weight:800; line-height:1}
 .ring .lvl span{font-size:8px; letter-spacing:2px; color:var(--mut); text-transform:uppercase}
 .hero-meta{flex:1; min-width:0}
-.hero-meta .nm{font-family:'Cinzel',serif; font-weight:700; font-size:14.5px}
+.hero-meta .nm{font-family:'Cinzel',Georgia,'Times New Roman',serif; font-weight:700; font-size:14.5px}
 .hero-meta .cls{font-size:10.5px; margin-top:2px; font-weight:700}
 .hero-meta .ttl{font-size:9.5px; color:var(--gold); letter-spacing:1.5px; text-transform:uppercase; margin-top:3px}
 .xpbar{position:relative; height:8px; margin-top:6px; border-radius:99px; background:#1c1630;
@@ -30,7 +30,7 @@
 .srow .v{margin-left:auto; font-weight:800; font-variant-numeric:tabular-nums}
 .srow.hl .v{color:var(--blood)} .srow.hl2 .v{color:var(--gold)} .srow.hl3 .v{color:var(--vio)}
 .srow.hl4 .v{color:var(--shard)} .srow.hl5 .v{color:var(--rtruth)}
-.sub{font-family:'Cinzel',serif; font-size:11px; letter-spacing:2px; color:var(--mut);
+.sub{font-family:'Cinzel',Georgia,'Times New Roman',serif; font-size:11px; letter-spacing:2px; color:var(--mut);
   text-transform:uppercase; margin:15px 0 8px; display:flex; align-items:center; gap:8px}
 .sub::after{content:""; flex:1; height:1px; background:linear-gradient(90deg,var(--line),transparent)}
 .ach-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:6px}
@@ -69,7 +69,7 @@
 .tree-head .pts b{color:var(--vio); font-size:15px}
 .tree-head .pts.sh b{color:var(--shard)}
 .tree-group{margin-bottom:6px}
-.tree-label{font-family:'Cinzel',serif; font-size:10px; letter-spacing:2px; text-transform:uppercase;
+.tree-label{font-family:'Cinzel',Georgia,'Times New Roman',serif; font-size:10px; letter-spacing:2px; text-transform:uppercase;
   color:#6d6590; margin:4px 0 6px; display:flex; align-items:center; gap:7px}
 .tree-label::before{content:""; width:14px; height:1px; background:var(--line2)}
 .tree-label::after{content:""; flex:1; height:1px; background:linear-gradient(90deg,var(--line),transparent)}
@@ -109,7 +109,7 @@
 .tree-legend i.sq{border-radius:3px; color:var(--vio)}
 .nodeinfo{margin-top:10px; padding:12px; border-radius:13px; border:1px solid var(--line2);
   background:rgba(255,255,255,.03); font-size:12px; min-height:92px}
-.nodeinfo h4{margin:0 0 4px; font-family:'Cinzel',serif; font-size:14px}
+.nodeinfo h4{margin:0 0 4px; font-family:'Cinzel',Georgia,'Times New Roman',serif; font-size:14px}
 .nodeinfo .tagline{font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--blood); margin-bottom:4px}
 .nodeinfo .ds{color:var(--mut); line-height:1.5; font-size:11.5px}
 .nodeinfo .ef{color:#79d4ab; font-weight:700; margin-top:5px; font-size:11.5px}
@@ -123,15 +123,15 @@
 /* ---------- Престиж ---------- */
 .prest-card{padding:13px; border-radius:14px; border:1px solid rgba(229,72,77,.4);
   background:radial-gradient(circle at 50% 0%, rgba(142,31,47,.22), rgba(14,10,24,.6) 70%); text-align:center}
-.prest-card h4{margin:0 0 6px; font-family:'Cinzel',serif; font-size:15px; letter-spacing:1px; color:#ff9a9d}
+.prest-card h4{margin:0 0 6px; font-family:'Cinzel',Georgia,'Times New Roman',serif; font-size:15px; letter-spacing:1px; color:#ff9a9d}
 .prest-card p{margin:0 0 9px; font-size:11px; color:var(--mut); line-height:1.55}
-.prest-card .gain{font-size:25px; font-weight:900; color:var(--shard); font-family:'Cinzel',serif;
+.prest-card .gain{font-size:25px; font-weight:900; color:var(--shard); font-family:'Cinzel',Georgia,'Times New Roman',serif;
   display:flex; align-items:center; justify-content:center; gap:8px}
 .prest-card .gain svg{width:21px;height:21px}
 .reqbar{height:7px; border-radius:99px; background:#151021; border:1px solid #43365e; overflow:hidden; margin:8px 0 6px}
 .reqbar i{display:block; height:100%; background:linear-gradient(90deg,var(--blood2),var(--blood))}
 .prest-btn{margin-top:9px; width:100%; padding:12px; border-radius:12px; cursor:pointer; font-weight:800;
-  font-size:12.5px; letter-spacing:1.5px; text-transform:uppercase; font-family:'Cinzel',serif;
+  font-size:12.5px; letter-spacing:1.5px; text-transform:uppercase; font-family:'Cinzel',Georgia,'Times New Roman',serif;
   border:1px solid rgba(229,72,77,.6); background:linear-gradient(180deg, rgba(229,72,77,.25), rgba(142,31,47,.15));
   color:#ff9a9d; transition:.2s}
 .prest-btn:hover:not(:disabled){box-shadow:0 0 26px -6px var(--blood); transform:translateY(-1px)}
@@ -175,7 +175,7 @@
   border:1px solid currentColor; background:rgba(0,0,0,.35)}
 .pet .p-ic svg{width:27px;height:27px; filter:drop-shadow(0 0 6px currentColor)}
 .pet .p-info{flex:1; min-width:0}
-.pet .p-nm{font-family:'Cinzel',serif; font-weight:700; font-size:12.5px; display:flex; align-items:baseline; gap:6px; flex-wrap:wrap}
+.pet .p-nm{font-family:'Cinzel',Georgia,'Times New Roman',serif; font-weight:700; font-size:12.5px; display:flex; align-items:baseline; gap:6px; flex-wrap:wrap}
 .pet .p-nm .lv{font-size:9.5px; font-weight:800; color:var(--vio)}
 .pet .p-rar{font-size:8.5px; letter-spacing:1.5px; text-transform:uppercase; font-weight:800; margin-top:1px}
 .pet .p-ef{font-size:10.5px; color:#79d4ab; margin-top:3px; font-weight:700; line-height:1.4}
@@ -187,7 +187,7 @@
 .codex-item{padding:9px 10px; border-radius:12px; border:1px solid var(--line);
   background:rgba(255,255,255,.02); margin-bottom:6px}
 .codex-item.locked{opacity:.42}
-.codex-item .cn{font-family:'Cinzel',serif; font-weight:700; font-size:12px; display:flex; align-items:center; gap:7px}
+.codex-item .cn{font-family:'Cinzel',Georgia,'Times New Roman',serif; font-weight:700; font-size:12px; display:flex; align-items:center; gap:7px}
 .codex-item .cn svg{width:14px;height:14px;color:var(--blood)}
 .codex-item .cl{font-size:10.5px; color:var(--mut); margin-top:5px; line-height:1.55; font-style:italic}
 .relic-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:8px}
@@ -237,10 +237,10 @@
 .well-card{text-align:center; padding:16px 12px; border-radius:15px; margin-bottom:10px;
   border:1px solid rgba(157,140,255,.35);
   background:radial-gradient(circle at 50% 0%, rgba(157,140,255,.16), rgba(14,10,24,.7) 72%)}
-.well-card h4{margin:0 0 6px; font-family:'Cinzel',serif; font-size:15px; letter-spacing:1px; color:#c5b4ff}
+.well-card h4{margin:0 0 6px; font-family:'Cinzel',Georgia,'Times New Roman',serif; font-size:15px; letter-spacing:1px; color:#c5b4ff}
 .well-card p{margin:0 0 10px; font-size:11px; color:var(--mut); line-height:1.55}
 .well-btn{width:100%; padding:11px; border-radius:12px; cursor:pointer; font-weight:800; font-size:12.5px;
-  letter-spacing:1.5px; text-transform:uppercase; font-family:'Cinzel',serif;
+  letter-spacing:1.5px; text-transform:uppercase; font-family:'Cinzel',Georgia,'Times New Roman',serif;
   border:1px solid rgba(157,140,255,.55); background:linear-gradient(180deg, rgba(157,140,255,.22), rgba(60,50,120,.15));
   color:#c5b4ff; transition:.2s}
 .well-btn:hover:not(:disabled){box-shadow:0 0 26px -6px var(--rwhis)}
@@ -301,7 +301,7 @@
   border:1px solid var(--line2); background:linear-gradient(180deg, rgba(139,108,240,.10), rgba(14,10,24,.6))}
 .mn-top{display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:10px}
 .mn-lbl{font-size:9.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--mut); font-weight:800}
-.mn-val{font-family:'Cinzel',serif; font-size:26px; font-weight:900; line-height:1; color:var(--blood)}
+.mn-val{font-family:'Cinzel',Georgia,'Times New Roman',serif; font-size:26px; font-weight:900; line-height:1; color:var(--blood)}
 .mode-row{display:flex; gap:6px; margin-bottom:10px}
 .mode-btn{flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:9px 6px;
   border-radius:11px; cursor:pointer; font-size:11.5px; font-weight:800; transition:.18s;
@@ -331,7 +331,7 @@
 .region.here{border-color:var(--rc); background:linear-gradient(90deg, rgba(255,255,255,.05), rgba(255,255,255,.015))}
 .region.here .rg-bar{opacity:1; box-shadow:0 0 14px var(--rc)}
 .region.locked{opacity:.45}
-.rg-nm{font-family:'Cinzel',serif; font-weight:700; font-size:12.5px; display:flex; align-items:center; gap:7px; flex-wrap:wrap}
+.rg-nm{font-family:'Cinzel',Georgia,'Times New Roman',serif; font-weight:700; font-size:12.5px; display:flex; align-items:center; gap:7px; flex-wrap:wrap}
 .rg-tag{font-size:8.5px; letter-spacing:1.5px; text-transform:uppercase; font-weight:800; color:var(--mut);
   padding:2px 6px; border-radius:6px; border:1px solid var(--line2)}
 .rg-tag.now{color:var(--rc); border-color:var(--rc)}

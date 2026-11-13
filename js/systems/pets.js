@@ -199,9 +199,5 @@ function renderPets(){
     (owned.length?'<div class="sub" style="margin-top:2px">Приручённые</div>'+owned.map(card).join(''):'')+
     (locked.length?'<div class="sub">Ещё не с тобой</div>'+locked.map(card).join(''):'');
 }
-function renderPetLayer(){
-  $('#petLayer').innerHTML=S.active.filter(id=>petOwned(id)&&!petAway(id)).map(id=>{
-    const p=PET(id);
-    return '<div class="pet-orb" style="color:'+RAR[p.rar].c+'" title="'+esc(p.n)+'">'+PET_SVG[id]+'</div>';
-  }).join('');
-}
+
+//# sourceURL=js/systems/pets.js

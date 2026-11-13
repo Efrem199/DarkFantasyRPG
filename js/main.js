@@ -209,3 +209,31 @@ resizeCv(); initParts(); embersLoop();
 
 /* Главный игровой цикл — 10 тиков в секунду */
 setInterval(gameTick,100);
+
+/* ---------------- Точка входа для тестов и консоли ----------------
+   Игра по-прежнему живёт в глобальной области (это нужно для file://),
+   но наружу выставлен один объект: с ним можно писать юнит-тесты и
+   дёргать формулы из DevTools, не трогая глобальные имена. */
+window.CB = {
+  get S(){ return S; },
+  // ядро
+  DEF, migrate, save, load, exportSave, importSave, applyOffline,
+  switchView, renderAll, openModal, closeModal, resourceModal,
+  num, validItem,
+  // бой и формулы
+  bonuses, stats, comboMul, depthCurve, xpNeed, hpFor, goldFor, xpFor,
+  makeMob, dealDamage, clickAttack, killMob, spawnMob, bossFail, gameTick, gainXP,
+  // системы
+  SHOP, upgCost, bulkCost, maxAfford, buy, autoBuyTick,
+  SK_COMMON, SK_CLASS, learnSkill,
+  PGROUPS, PTREE, learnP, canPrestige, shardGain, applyPrestige,
+  ZR, zoneAt, activeZones, travelTo, setMode,
+  ITYPE, RAR, SLOTS,
+  // утилиты
+  nf, fmtTime, clamp,
+  /* для тестов: подменить противника, не трогая рендер */
+  __forceMob(m){ mob=m; mobDead=false; },
+  BOSS_TIME, BOSS_HP_MULT, PREST_REQ, PREST_COOLDOWN, INV_MAX, SAVE_VER
+};
+
+//# sourceURL=js/main.js

@@ -322,7 +322,11 @@ function initParts(){
     r:0.6+Math.random()*2.2,sp:0.25+Math.random()*0.8,sw:Math.random()*Math.PI*2,
     hue:12+Math.random()*26,a:0.25+Math.random()*0.5}));
 }
+/* Уважаем системную настройку «уменьшить движение»: угли не рисуем вовсе
+   (а не просто «медленнее»), чтобы не жечь батарею и не укачивать. */
+const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 function embersLoop(){
+  if (reduceMotion){ ctx2.clearRect(0,0,innerWidth,innerHeight); return; }
   ctx2.clearRect(0,0,innerWidth,innerHeight);
   for (const p of parts){
     p.y-=p.sp; p.sw+=0.012; p.x+=Math.sin(p.sw)*0.35;
@@ -344,3 +348,5 @@ function renderAll(){
   renderCodex(); renderBuffs(); renderSkillBar(); renderStanceBar(); renderTabBadges(); renderForge(); renderDeeds();
   renderMap(); renderModeChip();
 }
+
+//# sourceURL=js/ui/render.js

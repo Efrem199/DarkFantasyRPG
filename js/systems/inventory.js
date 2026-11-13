@@ -217,3 +217,5 @@ function sellItem(id){
   sfx.gold(); log('Продано: '+esc(it.n)+' за '+nf(p)+' золота.','gold');
   renderGear(); renderGold(); renderTabBadges(); save(true);
 }
+
+//# sourceURL=js/systems/inventory.js

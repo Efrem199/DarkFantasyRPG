@@ -80,8 +80,11 @@ const esc = s => { const d=document.createElement('div'); d.textContent=s; retur
 const clamp = (v,a,b) => Math.max(a, Math.min(b,v));
 const pick = a => a[Math.floor(Math.random()*a.length)];
 function nf(n){
-  if (!isFinite(n)) return '∞';
+  if (typeof n!=='number'||!isFinite(n)) return '∞';
+  if (n<0) return '−'+nf(-n);
   if (n<1000) return n<10 ? (Math.round(n*10)/10).toString() : Math.floor(n).toString();
+  /* За пределом суффиксов (1e33) — честная экспонента, а не «1000No». */
+  if (n>=1e33) return n.toExponential(2).replace('e+','·10^');
   const u=['K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc']; let i=-1;
   while (n>=1000 && i<u.length-1){ n/=1000; i++; }
   return (n>=100?n.toFixed(0):n>=10?n.toFixed(1):n.toFixed(2))+u[i];
@@ -91,3 +94,5 @@ function fmtTime(sec){ sec=Math.floor(sec); const h=Math.floor(sec/3600),m=Math.
 function roman(n){ const T=[[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']]; let r=''; for(const[v,s]of T){while(n>=v){r+=s;n-=v;}} return r; }
 const pct = v => (v>=0?'+':'')+(Math.round(v*10)/10)+'%';
 const now = () => Date.now();
+
+//# sourceURL=js/core/utils.js

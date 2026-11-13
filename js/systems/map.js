@@ -192,3 +192,5 @@ function renderModeChip(){
     ? '<i class="mc rift">разлом</i>'
     : (S.mode==='farm' ? '<i class="mc farm">фарм</i>' : '');
 }
+
+//# sourceURL=js/systems/map.js

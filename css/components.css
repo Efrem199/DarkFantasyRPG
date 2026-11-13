@@ -145,7 +145,7 @@
 .modal-card .m-ic{width:52px; height:52px; margin:0 auto 12px; border-radius:16px; display:grid; place-items:center;
   color:var(--vio); border:1px solid var(--line2); background:rgba(139,108,240,.08)}
 .modal-card .m-ic svg{width:24px;height:24px}
-.modal-card h2{margin:0 0 8px; font-family:'Cinzel',serif; font-size:19px; letter-spacing:1px}
+.modal-card h2{margin:0 0 8px; font-family:'Cinzel',Georgia,'Times New Roman',serif; font-size:19px; letter-spacing:1px}
 .modal-card p{margin:0 0 15px; font-size:12.5px; color:var(--mut); line-height:1.65}
 .modal-card p b{color:var(--gold)} .modal-card p i{color:#a79ec7}
 .m-list{text-align:left; font-size:11.5px; color:var(--mut); line-height:1.9; margin:0 auto 15px; max-width:400px}
@@ -167,7 +167,7 @@
 .class-card .ci{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;
   border:1px solid currentColor; background:rgba(0,0,0,.3)}
 .class-card .ci svg{width:20px;height:20px}
-.class-card .cn{font-family:'Cinzel',serif; font-size:15px; font-weight:700}
+.class-card .cn{font-family:'Cinzel',Georgia,'Times New Roman',serif; font-size:15px; font-weight:700}
 .class-card .cd{font-size:11.5px; color:var(--mut); margin-top:7px; line-height:1.5}
 .class-card .cs{font-size:11px; color:#79d4ab; margin-top:6px; font-weight:700}
 .class-card .cx{font-size:11px; color:#ffb14e; margin-top:4px; font-weight:700}
@@ -180,12 +180,12 @@ textarea.save-box{width:100%; height:100px; resize:vertical; padding:10px; borde
 #prestScreen{position:fixed; inset:0; z-index:95; display:none; place-items:center; background:#05040a;
   text-align:center; padding:20px; overflow-y:auto}
 #prestScreen.on{display:grid; animation:prIn .6s ease}
-#prestScreen .pt{font-family:'Cinzel',serif; font-weight:900; font-size:clamp(22px,6.5vmin,54px); letter-spacing:8px;
+#prestScreen .pt{font-family:'Cinzel',Georgia,'Times New Roman',serif; font-weight:900; font-size:clamp(22px,6.5vmin,54px); letter-spacing:8px;
   background:linear-gradient(180deg,#fff,var(--blood)); -webkit-background-clip:text; background-clip:text;
   color:transparent; filter:drop-shadow(0 0 40px rgba(229,72,77,.7)); animation:prT 1s ease}
 #prestScreen .pl{margin-top:16px; font-size:12.5px; color:var(--mut); line-height:2; max-width:520px; animation:prL 1.4s ease}
 #prestScreen .ps{margin-top:20px; font-size:19px; font-weight:900; color:var(--shard);
-  display:flex; align-items:center; justify-content:center; gap:10px; font-family:'Cinzel',serif}
+  display:flex; align-items:center; justify-content:center; gap:10px; font-family:'Cinzel',Georgia,'Times New Roman',serif}
 #prestScreen .ps svg{width:22px;height:22px}
 .sum-grid{max-width:440px; margin:18px auto 0; display:grid; gap:7px; text-align:left}
 .sum-row{display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:11px;

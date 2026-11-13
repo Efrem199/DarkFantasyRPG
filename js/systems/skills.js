@@ -235,3 +235,5 @@ function respec(){
     selSkill=null; renderTrees(); renderStats(); renderXP(); renderTabBadges(); save(true);
   };
 }
+
+//# sourceURL=js/systems/skills.js

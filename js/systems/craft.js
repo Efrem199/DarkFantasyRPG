@@ -224,3 +224,5 @@ function renderForge(){
   if (sa) sa.onchange=e=>{ fuseA=e.target.value||null; renderForge(); };
   if (sb) sb.onchange=e=>{ fuseB=e.target.value||null; renderForge(); };
 }
+
+//# sourceURL=js/systems/craft.js

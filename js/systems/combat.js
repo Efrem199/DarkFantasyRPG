@@ -162,10 +162,12 @@ function stats(){
   const B=bonuses(), u=S.u;
   const c=CLASSES[S.cls]||{cm:1,dm:1,critBase:5,critMul:2.5};
   const pm=1+0.10*u.power;
+  /* Мультипликативное ядро лавки (awaken/echo/crown) */
+  const shopMul=(1+12/100*u.awaken)*(1+13/100*u.echo)*(1+14/100*u.crown);
   return {
     B,
-    click:(3+(S.lvl-1)*2+u.blade*3)*pm*c.cm*B.clickMul*B.allMul,
-    dps:(S.lvl+u.servant*4)*pm*c.dm*B.dpsMul*B.allMul,
+    click:(3+(S.lvl-1)*2+u.blade*3)*pm*shopMul*c.cm*B.clickMul*B.allMul,
+    dps:(S.lvl+u.servant*4)*pm*shopMul*c.dm*B.dpsMul*B.allMul,
     crit:clamp(c.critBase+3*u.crit+B.crit,0,B.critCap),
     critMul:c.critMul+B.critMulAdd,
     goldMul:(1+0.25*u.greed)*B.goldMul,
@@ -189,7 +191,12 @@ const hpFor = s => Math.ceil(14*depthCurve(s)+s*4);
 const goldFor = s => Math.ceil((6+s*2.3)*depthCurve(s)*0.78);
 const xpFor = s => Math.ceil(3+s*1.55);
 
-/* ---------------- Враги ---------------- */
+/* ---------------- Враги ----------------
+   HP Владыки = BOSS_HP_MULT × HP обычной твари, время на убийство — BOSS_TIME.
+   Было 10×/30 с: на 100-й глубине это требовало 3 млн DPS, тогда как сила
+   той эпохи даёт ~0.6 млн — Владыка становился непроходимым навсегда.
+   7×/40 с снижает требование втрое, не облегчая первые глубины (там HP мал). */
+const BOSS_HP_MULT=7;
 const FAM_NAMES = [
   ['Упырь','Могильный пожиратель','Гнилой скверн','Плотояд тьмы'],
   ['Костяной воин','Скелет-дозорный','Безгласный страж','Костяной пёс'],
@@ -266,7 +273,7 @@ function makeMob(stage){
   } else if (wantMark){
     name=pick(MARK_NAMES); fam=Math.floor(Math.random()*6);
   } else { fam=(stage*7+zi*3)%6; name=FAM_NAMES[fam][(stage+zi)%FAM_NAMES[fam].length]; }
-  let mult = riftBoss?14:boss?10:elite?3.4:wantMark?7:1;
+  let mult = riftBoss?14:boss?BOSS_HP_MULT:elite?3.4:wantMark?7:1;
   if (boss && r.bossHp) mult *= r.bossHp;
   const hp = Math.ceil(hpFor(stage)*mult);
   return {stage, boss, elite, mark:wantMark, riftBoss, fam, name, hp, maxHp:hp,
@@ -370,7 +377,7 @@ function killMob(){
   const x = Math.ceil(xpFor(mob.stage)*mult*st.xpMul);
   if (g>0){ S.gold+=g; S.totalGold+=g; }
   S.kills++;
-  if (mob.boss) S.bosses++;
+  if (mob.boss){ S.bosses++; S.bossTries=0; }
   if (mob.elite) S.elites++;
   if (mob.mark){ S.marks++; S.markPending=false; }
   S.maxStage=Math.max(S.maxStage,mob.stage);
@@ -490,9 +497,22 @@ function bossFail(){
     log('Разлом закрылся сам. Хозяин остался внутри.','boss');
     sfx.fail(); closeRift(false); spawnMob(); return;
   }
-  log('<b>'+esc(mob.name)+'</b> отбил натиск. Тьма отбрасывает вас назад.','boss');
+  /* --- Мягкий закон глубин ---
+     Если Владыка не сдался с третьей попытки, тьма больше не отбрасывает
+     назад: игрок остаётся на глубине, фармит и возвращается сильнее.
+     Раньше откат + возврат босса на том же этаже создавали «висящий» забег,
+     из которого нельзя было выйти иначе как через фарм вслепую. */
+  S.bossTries=(S.bossTries||0)+1;
+  const mercy = S.bossTries>=3;
+  if (S.mode==='farm'||mercy){
+    log('<b>'+esc(mob.name)+'</b> отбил натиск. Глубина выдержит вас ещё раз'+
+      (mercy?' — тьма больше не гонит вниз.':' — вы остаётесь на этаже.')+' Отдохните и вернитесь сильнее.','boss');
+  } else {
+    log('<b>'+esc(mob.name)+'</b> отбил натиск. Тьма отбрасывает вас назад. Попытка '+S.bossTries+' из 3.','boss');
+    if (S.mode!=='farm') S.stage=Math.max(1,mob.stage-1);
+  }
+  if (mercy) hint('bossmercy','Владыка не сдался','Глубина больше не откатывает вас назад. Фармите золото на текущем этаже, усильте клик и вернитесь — Владыка подождёт.');
   sfx.fail(); arenaShake();
-  if (S.mode!=='farm') S.stage=Math.max(1,mob.stage-1);
   spawnMob();
 }
 function showWeak(){
@@ -595,3 +615,5 @@ function gameTick(){
   else if (ch){ renderBuffs(); renderSkillBar(); }
   if (saveTimer>5){ saveTimer=0; save(true); }
 }
+
+//# sourceURL=js/systems/combat.js

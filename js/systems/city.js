@@ -279,3 +279,5 @@ function renderDeeds(){
   }).join('');
   $('#deedsBody').innerHTML=h;
 }
+
+//# sourceURL=js/systems/city.js

@@ -109,3 +109,5 @@ function saveModal(){
     $('#sCopy').textContent='Скопировано'; };
   $('#sLoad').onclick=()=>{ if (importSave($('#saveBox').value.trim())) location.reload(); else $('#sLoad').textContent='Печать сломана'; };
 }
+
+//# sourceURL=js/ui/modals.js

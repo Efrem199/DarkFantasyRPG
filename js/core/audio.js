@@ -42,3 +42,5 @@ const sfx = {
   prestige:()=>{[110,82,65,49].forEach((f,i)=>tone({f,f2:f/2,t:1.1,type:'sawtooth',v:.16,delay:i*.25}));
     tone({f:1200,f2:180,t:1.6,type:'triangle',v:.1,delay:.6});}
 };
+
+//# sourceURL=js/core/audio.js

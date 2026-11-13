@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Игра работает без сборки — проверяем, что каждый файл вообще парсится.
+      - name: Синтаксис всех скриптов
+        run: |
+          for f in $(find js -name '*.js'); do
+            node --check "$f" || exit 1
+          done
+
+      - name: Установка dev-зависимостей (тесты и линтер)
+        run: npm install --no-audit --no-fund
+
+      - name: Линтер (опечатки в именах, дубли ключей)
+        run: npm run lint
+
+      - name: Тесты (формулы, сейвы, вкладки, баланс)
+        run: npm test
+
+      - name: Симуляция баланса — не должно быть регрессии
+        run: npm run test:balance
